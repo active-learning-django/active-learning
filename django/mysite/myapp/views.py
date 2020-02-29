@@ -12,10 +12,10 @@ from .models import Post
 
 class HomePageView(ListView):
     model = Post
-    template_name = 'home.html'
+    template_name = 'imagelabeling/home.html'
 
 class CreatePostView(CreateView):
     model = Post
     form_class = PostForm
-    template_name = 'post.html'
+    template_name = 'imagelabeling/post.html'
     success_url = reverse_lazy('home')
