@@ -8,15 +8,20 @@
     <div class="container">
         <h1>Label The Image either Normal or Abnormal</h1>
          {%  if desired_image %}
-                    <li><img src="{{ desired_image.image_file.url }}"></li>
+                    <li><img src="{{ desired_image.image_file.url }}" class="img-fluid"></li>
                     <li>Confidence Level (for testing): {{ desired_image.confidence }}</li>
         {% endif %}
 
-        <form method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          {{ form.as_p }}
-          <button type="submit">Submit Selection</button>
-        </form>
+    <form action="{% url 'vote' desired_image.id %}" method="post">
+        {% csrf_token %}
+        <input type="radio" name="choice" id="abnormal_votes" value="Abnormal">
+        <label for="abnormal_votes">Abnormal</label><br>
+        <input type="radio" name="choice" id="normal_votes" value="Normal">
+        <label for="normal_votes">Normal</label><br>
+        <input type="radio" name="choice" id="unknown_votes" value="Unknown">
+        <label for="unknown_votes">Unknown</label><br>
+        <input type="submit" value="Vote">
+    </form>
     </div>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
