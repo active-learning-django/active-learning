@@ -8,3 +8,4 @@ db.sqlite3
 imagelabeling/media
 venv/*
 pyenv.cfg
+.DS_Store

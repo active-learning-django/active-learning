@@ -65,6 +65,12 @@ def vote(request, image_id):
     # Always return an HttpResponseRedirect after successfully dealing
     # with POST data. This prevents data from being posted twice if a
     # user hits the Back button.
+
+    # recalculate confidence based on new vote
+    if image.normal_votes + image.abnormal_votes != 0:
+        image.confidence = image.normal_votes / (image.normal_votes + image.abnormal_votes)
+    else:
+        image.confidence = 0.5
     image.save()
     return HttpResponseRedirect('/label')
 

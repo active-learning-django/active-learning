@@ -12,7 +12,7 @@ class ImageLabel(models.Model):
 
     title = models.CharField(max_length=100)
     category = models.CharField(max_length=100, choices=label_option)
-    confidence = models.FloatField(default=0)
+    confidence = models.FloatField(default=0.5)
     image_file = models.ImageField(upload_to='images/')
     abnormal_votes = models.IntegerField(default=0)
     normal_votes = models.IntegerField(default=0)
