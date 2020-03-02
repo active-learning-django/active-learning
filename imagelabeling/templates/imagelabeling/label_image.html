@@ -8,8 +8,8 @@
     <div class="container">
         <h1>Label The Image either Normal or Abnormal</h1>
          {%  if desired_image %}
-                    <li><img src="{{ desired_image.image_file.url }}" class="img-fluid"></li>
-                    <li>Confidence Level (for testing): {{ desired_image.confidence }}</li>
+                    <img src="{{ desired_image.image_file.url }}" class="img-fluid">
+             <p>Confidence Level (for testing): {{ desired_image.confidence }}</p>
         {% endif %}
 
     <form action="{% url 'vote' desired_image.id %}" method="post">
