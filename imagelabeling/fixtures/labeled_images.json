@@ -1,0 +1,50 @@
+[
+  {
+    "model": "imagelabeling.ImageLabel",
+    "pk": 1,
+    "fields": {
+      "image_file": "/images/LABELED/ABNORMAL/person4_bacteria_14.jpeg",
+      "title": "Bacteria 14",
+      "confidence": "0.5",
+      "abnormal_votes": "0",
+      "normal_votes": "0",
+      "unknown_votes": "0"
+    }
+  },
+    {
+    "model": "imagelabeling.ImageLabel",
+    "pk": 2,
+    "fields": {
+      "image_file": "/images/LABELED/ABNORMAL/person5_bacteria_15.jpeg",
+      "title": "Bacteria 15",
+      "confidence": "0.5",
+      "abnormal_votes": "0",
+      "normal_votes": "0",
+      "unknown_votes": "0"
+    }
+  },
+    {
+    "model": "imagelabeling.ImageLabel",
+    "pk": 3,
+    "fields": {
+      "image_file": "/images/LABELED/ABNORMAL/person5_bacteria_16.jpeg",
+      "title": "Bacteria 16",
+      "confidence": "0.5",
+      "abnormal_votes": "0",
+      "normal_votes": "0",
+      "unknown_votes": "0"
+    }
+  },
+    {
+    "model": "imagelabeling.ImageLabel",
+    "pk": 4,
+    "fields": {
+      "image_file": "/images/LABELED/ABNORMAL/person5_bacteria_17.jpeg",
+      "title": "Bacteria 17",
+      "confidence": "0.5",
+      "abnormal_votes": "0",
+      "normal_votes": "0",
+      "unknown_votes": "0"
+    }
+  }
+]

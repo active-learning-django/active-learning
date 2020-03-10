@@ -9,3 +9,7 @@ imagelabeling/media
 venv/*
 pyenv.cfg
 .DS_Store
+
+# ignore these files so we don't commit them
+media/images/UNLABELED/*
+media/images/LABELED/*

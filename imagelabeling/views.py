@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-
+from .test_skikit import Test_Skikit
 
 # Create your views here.
 from django.views.generic import ListView, CreateView
@@ -29,7 +29,7 @@ def LabelImageView(request):
     model = ImageLabel
     form_class = ImageLabelForm
     # logic to send the image we want user to vote on
-    desired_image_set = ImageLabel.objects.order_by('confidence')[:1]
+    desired_image_set = ImageLabel.objects.order_by('adjusted_confidence')
     desired_image = desired_image_set[0]
     context = {
         'desired_image': desired_image,
@@ -69,9 +69,15 @@ def vote(request, image_id):
     # recalculate confidence based on new vote
     if image.normal_votes + image.abnormal_votes != 0:
         image.confidence = image.normal_votes / (image.normal_votes + image.abnormal_votes)
+        # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
+        image.adjusted_confidence = abs(image.confidence - 0.5)
     else:
         image.confidence = 0.5
+        image.adjusted_confidence = 0
     image.save()
     return HttpResponseRedirect('/label')
+
+def testSkikit(request):
+    Test_Skikit.runModel("")
 
 
