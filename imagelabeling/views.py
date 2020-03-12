@@ -9,6 +9,16 @@ from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import Http404
 
+# import joblib
+from sklearn.externals import joblib
+
+# Path to Joblib
+from pathlib import Path
+
+# For reading the new image
+import cv2
+
+
 
 from .forms import ImageLabelForm, ImageLabelSubmitForm
 from .models import ImageLabel
@@ -77,7 +87,19 @@ def vote(request, image_id):
     image.save()
     return HttpResponseRedirect('/label')
 
+def trainModel(request):
+    t = Test_Skikit()
+    t.launch_process()
+    html = "<html><body>Training your model!</body></html>"
+    return HttpResponse(html)
+
 def testSkikit(request):
-    Test_Skikit.runModel("")
+    t = Test_Skikit()
+    t.predict_with_model()
+
+    html = "<html><body>Testing the model against new data!</body></html>"
+    return HttpResponse(html)
+
+
 
 

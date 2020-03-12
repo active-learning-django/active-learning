@@ -11,7 +11,7 @@ class ImageLabel(models.Model):
     )
 
     title = models.CharField(max_length=100)
-    category = models.CharField(max_length=100, choices=label_option)
+    model_classification = models.CharField(max_length=100, choices=label_option)
     confidence = models.FloatField(default=0.5)
     adjusted_confidence = models.FloatField(default=0)
     image_file = models.ImageField(upload_to='images/')
@@ -21,3 +21,5 @@ class ImageLabel(models.Model):
 
     def __str__(self):
         return self.title
+class Classifier(models.Model):
+    print("classifier model")
