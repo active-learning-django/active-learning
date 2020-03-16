@@ -89,13 +89,13 @@ def vote(request, image_id):
 
 def trainModel(request):
     t = Test_Skikit()
-    t.launch_process()
+    t.launch_training()
     html = "<html><body>Training your model!</body></html>"
     return HttpResponse(html)
 
 def testSkikit(request):
     t = Test_Skikit()
-    t.predict_with_model()
+    t.launch_predicting()
 
     html = "<html><body>Testing the model against new data!</body></html>"
     return HttpResponse(html)
