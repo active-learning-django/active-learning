@@ -8,20 +8,12 @@ from django.urls import reverse_lazy, reverse
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import Http404
+from django.forms import modelformset_factory
 
-# import joblib
-from sklearn.externals import joblib
-
-# Path to Joblib
-from pathlib import Path
-
-# For reading the new image
-import cv2
+from .forms import ImageLabelForm, CreateMachineLearningModelForm
+from .models import ImageLabel, MachineLearningModel
 
 
-
-from .forms import ImageLabelForm, ImageLabelSubmitForm
-from .models import ImageLabel
 
 from django.shortcuts import get_object_or_404, render
 
@@ -29,17 +21,51 @@ class HomePageView(ListView):
     model = ImageLabel
     template_name = 'imagelabeling/home.html'
 
-class CreatePostView(CreateView):
-    model = ImageLabel
-    form_class = ImageLabelSubmitForm
+def CreatePostView(request):
+    model = MachineLearningModel
+    form_class = CreateMachineLearningModelForm
     template_name = 'imagelabeling/post.html'
     success_url = reverse_lazy('home')
+    ImageFormSet = modelformset_factory(ImageLabel,
+                                        form=ImageLabelForm, extra=10)
+    if request.method == 'POST':
+
+        createMLModelForm = CreateMachineLearningModelForm(request.POST)
+        formset = ImageFormSet(request.POST, request.FILES,
+                               queryset=ImageLabel.objects.none())
+
+        if createMLModelForm.is_valid() and formset.is_valid():
+            create_model_form = createMLModelForm.save(commit=False)
+            create_model_form.title = request.POST.get('title')
+            create_model_form.save()
+
+            # for each image label form
+            for form in formset.cleaned_data:
+                # this helps to not crash if the user
+                # does not upload all the photos
+                if form:
+                    image_file = form['image_file']
+                    # print(request.FILES)
+                    # sets up the foreign key association
+                    photo = ImageLabel(machine_learning_model=create_model_form, image_file=image_file, title=image_file)
+                    photo.save()
+            return HttpResponseRedirect("/")
+        else:
+            print(createMLModelForm.errors, formset.errors)
+    else:
+        createMLModelForm = CreateMachineLearningModelForm()
+        formset = ImageFormSet(queryset=ImageLabel.objects.none())
+    return render(request, 'imagelabeling/post.html',
+                  {'CreateMachineLearningModelForm': CreateMachineLearningModelForm, 'formset': formset})
 
 def LabelImageView(request):
     model = ImageLabel
     form_class = ImageLabelForm
     # logic to send the image we want user to vote on
     desired_image_set = ImageLabel.objects.order_by('adjusted_confidence')
+    if len(desired_image_set) == 0:
+        html = "<html><body>Currently no images</body></html>"
+        return HttpResponse(html)
     desired_image = desired_image_set[0]
     context = {
         'desired_image': desired_image,
@@ -52,7 +78,7 @@ def detail(request, image_id):
     try:
         image = ImageLabel.objects.get(pk=image_id)
     except ImageLabel.DoesNotExist:
-        raise Http404("Question does not exist")
+        raise Http404("Label does not exist")
     return render(request,'imagelabeling/detail.html', {'image': image})
 
 # this will just update our database with the user's vote of whether image is normal or abnormal

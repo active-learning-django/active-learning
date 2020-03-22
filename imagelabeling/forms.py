@@ -1,14 +1,14 @@
 from django import forms
 from .models import ImageLabel
+from .models import MachineLearningModel
 
-class ImageLabelSubmitForm(forms.ModelForm):
+class CreateMachineLearningModelForm(forms.ModelForm):
     class Meta:
-        model = ImageLabel
-        fields = ['title', 'model_classification', 'image_file']
+        model = MachineLearningModel
+        fields = ['title']
 
 class ImageLabelForm(forms.ModelForm):
-    Choices = forms.ChoiceField(choices=[(1, 'abnormal_votes'), (1, 'normal_votes'), (1, 'unknown_votes')])
     class Meta:
         model = ImageLabel
-        fields = ["Choices"]
+        fields = ["image_file"]
 

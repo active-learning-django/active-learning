@@ -3,6 +3,9 @@ from django.db import models
 # Create your models here.
 from django.db import models
 
+class MachineLearningModel(models.Model):
+    title = models.CharField(max_length=100)
+
 class ImageLabel(models.Model):
     label_option = (
         ("Abnormal", "Abnormal"),
@@ -18,8 +21,10 @@ class ImageLabel(models.Model):
     abnormal_votes = models.IntegerField(default=0)
     normal_votes = models.IntegerField(default=0)
     unknown_votes = models.IntegerField(default=0)
+    machine_learning_model = models.ForeignKey(MachineLearningModel, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
+
 class Classifier(models.Model):
     print("classifier model")

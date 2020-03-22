@@ -28,10 +28,7 @@ from sklearn.externals import joblib
 
 
 # Import datasets, classifiers and performance metrics
-from sklearn import datasets, svm, metrics
 from sklearn.model_selection import train_test_split
-from sklearn.dummy import DummyClassifier
-from sklearn.metrics import accuracy_score
 
 # Import keras stuff to do the image recognition/loading stuff
 from keras.applications.densenet import DenseNet121
