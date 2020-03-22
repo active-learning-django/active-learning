@@ -41,9 +41,9 @@ from keras import backend as K
 
 class Test_Skikit:
     # this seems to go through the images and featurize them, then builds the model
-    def train_model(self):
-        print("training model")
-        final_data = self.process_images('LABELED/NORMAL', 'LABELED/ABNORMAL', 'final_data_test.csv', 1)
+    def train_model(self, model_name):
+        print("training model", model_name)
+        final_data = self.process_images('LABELED/NORMAL', 'LABELED/ABNORMAL', 'final_data_test_' + model_name + '.csv', 1)
 
         X_train, X_test, y_train, y_test = train_test_split(final_data.drop('label', axis=1), final_data['label'], test_size=0.20, random_state=0)
 
@@ -66,7 +66,7 @@ class Test_Skikit:
         # now also check the unlabeled images and figure assign what they are
 
         # for now, just dump the model into a file, if model.joblib does not exist
-        joblib.dump(model, 'model.joblib')
+        joblib.dump(model, 'model_' + model_name + '.joblib')
         K.clear_session()
 
     def process_images(self, directory_1, directory_2, export_file_name, label):
@@ -131,18 +131,11 @@ class Test_Skikit:
         final_data = final_data.drop(columns='image')
         return final_data
 
-    def launch_training(self):
-        # launch the thread that does the featurizing and model building
-        print("name is main")
-        t = threading.Thread(target=self.train_model, args=(), kwargs={})
-        t.setDaemon(True)
-        t.start()
-
-    def predict_with_model(self):
+    def predict_with_model(self, model_name):
         print("Predicting")
         final_data = self.process_images('UNLABELED/NORMAL', 'UNLABELED/ABNORMAL', 'final_data_predicted.csv', 0)
         K.clear_session()
-        model = joblib.load('model.joblib')
+        model = joblib.load('model_' + model_name + '.joblib')
 
         # final_data = final_data.reset_index()
         # we create our test and training sets
@@ -153,10 +146,15 @@ class Test_Skikit:
         print(model.predict_proba(features))
         K.clear_session()
 
-    def launch_predicting(self):
+    def launch_training(self, model_name):
         # launch the thread that does the featurizing and model building
-        print("name is main")
-        t = threading.Thread(target=self.predict_with_model, args=(), kwargs={})
+        t = threading.Thread(target=self.train_model(model_name), args=(), kwargs={})
+        t.setDaemon(True)
+        t.start()
+
+    # launch the thread that does the featurizing and model building
+    def launch_predicting(self, model_name):
+        t = threading.Thread(target=self.predict_with_model(model_name), args=(), kwargs={})
         t.setDaemon(True)
         t.start()
 

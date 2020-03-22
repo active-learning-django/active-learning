@@ -43,13 +43,21 @@ def CreatePostView(request):
             for form in formset.cleaned_data:
                 # this helps to not crash if the user
                 # does not upload all the photos
+                # save the image objects to database
                 if form:
                     image_file = form['image_file']
                     # print(request.FILES)
                     # sets up the foreign key association
                     photo = ImageLabel(machine_learning_model=create_model_form, image_file=image_file, title=image_file)
                     photo.save()
-            return HttpResponseRedirect("/")
+            # after that's done, we can train the model
+            # this might not be right
+            ml_model = get_object_or_404(MachineLearningModel, pk=create_model_form.id)
+            t = Test_Skikit()
+            t.launch_training(ml_model.title)
+            html = "<html><body>Training your model!</body></html>"
+            return HttpResponse(html)
+            # redirect to train the model
         else:
             print(createMLModelForm.errors, formset.errors)
     else:
@@ -57,6 +65,13 @@ def CreatePostView(request):
         formset = ImageFormSet(queryset=ImageLabel.objects.none())
     return render(request, 'imagelabeling/post.html',
                   {'CreateMachineLearningModelForm': CreateMachineLearningModelForm, 'formset': formset})
+
+def ml_model_detail(request, ml_model_id):
+    try:
+        ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
+    except MachineLearningModel.DoesNotExist:
+        raise Http404("Model does not exist")
+    return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model})
 
 def LabelImageView(request):
     model = ImageLabel
@@ -74,12 +89,12 @@ def LabelImageView(request):
     success_url = reverse_lazy('home')
     return HttpResponse(template.render(context, request))
 
-def detail(request, image_id):
+def image_label_detail(request, image_id):
     try:
         image = ImageLabel.objects.get(pk=image_id)
     except ImageLabel.DoesNotExist:
         raise Http404("Label does not exist")
-    return render(request,'imagelabeling/detail.html', {'image': image})
+    return render(request, 'imagelabeling/image_label_detail.html', {'image': image})
 
 # this will just update our database with the user's vote of whether image is normal or abnormal
 # we will envoke this from our form in /label, template label_image
@@ -110,15 +125,17 @@ def vote(request, image_id):
     image.save()
     return HttpResponseRedirect('/label')
 
-def trainModel(request):
+def trainModel(request, ml_model_id):
+    ml_model = get_object_or_404(ImageLabel, pk=ml_model_id)
     t = Test_Skikit()
-    t.launch_training()
+    t.launch_training(ml_model.title)
     html = "<html><body>Training your model!</body></html>"
     return HttpResponse(html)
 
-def testSkikit(request):
+def testSkikit(request, ml_model_id):
+    ml_model = get_object_or_404(ImageLabel, pk=ml_model_id)
     t = Test_Skikit()
-    t.launch_predicting()
+    t.launch_predicting(ml_model.title)
 
     html = "<html><body>Testing the model against new data!</body></html>"
     return HttpResponse(html)

@@ -16,10 +16,10 @@
 
     <form action="{% url 'vote' desired_image.id %}" method="post">
         {% csrf_token %}
-        <input type="radio" name="choice" id="abnormal_votes" value="Abnormal">
-        <label for="abnormal_votes">Abnormal</label><br>
-        <input type="radio" name="choice" id="normal_votes" value="Normal">
-        <label for="normal_votes">Normal</label><br>
+        <input type="radio" name="choice" id="zero_votes" value=0>
+        <label for="zero_votes">Abnormal</label><br>
+        <input type="radio" name="choice" id="one_votes" value=1>
+        <label for="one_votes">Normal</label><br>
         <input type="radio" name="choice" id="unknown_votes" value="Unknown">
         <label for="unknown_votes">Unknown</label><br>
         <input type="submit" value="Vote">

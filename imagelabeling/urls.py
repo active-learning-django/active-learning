@@ -11,6 +11,7 @@ urlpatterns = [
     path('label/', views.LabelImageView, name='label_image'),
     path('test-model/', views.testSkikit, name='test-model'),
     path('train-model/', views.trainModel, name='train-model'),
-    path('<int:image_id>/', views.detail, name='detail'),
-    path('<int:image_id>/vote/', views.vote, name='vote'),
+    path('model/<int:ml_model_id>/', views.ml_model_detail, name='detail'),
+    path('label/<int:image_id>/', views.image_label_detail, name='detail'),
+    path('label/<int:image_id>/vote/', views.vote, name='vote'),
 ]
