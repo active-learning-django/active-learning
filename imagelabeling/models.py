@@ -4,12 +4,13 @@ from django.db import models
 from django.db import models
 
 class MachineLearningModel(models.Model):
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, unique=True)
+    classification_notes = models.CharField(max_length=100)
 
 class ImageLabel(models.Model):
     label_option = (
-        ("Abnormal", "Abnormal"),
-        ("Normal", "Normal"),
+        ("0", "0"),
+        ("1", "1"),
         ("Unknown", "Unknown"),
     )
 
@@ -18,8 +19,8 @@ class ImageLabel(models.Model):
     confidence = models.FloatField(default=0.5)
     adjusted_confidence = models.FloatField(default=0)
     image_file = models.ImageField(upload_to='images/')
-    abnormal_votes = models.IntegerField(default=0)
-    normal_votes = models.IntegerField(default=0)
+    one_votes = models.IntegerField(default=0)
+    zero_votes = models.IntegerField(default=0)
     unknown_votes = models.IntegerField(default=0)
     machine_learning_model = models.ForeignKey(MachineLearningModel, on_delete=models.CASCADE)
 

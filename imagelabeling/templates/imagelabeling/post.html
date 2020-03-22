@@ -8,10 +8,11 @@
 
     {% for field in CreateMachineLearningModelForm %}
         <br>
-        Model Title: {{ field }}
+        {{ field.label }}: {{ field }}
         <br /><br>
     {% endfor %}
-
+    <p>Classification Notes should include instructions for what a label of "0" means, and what a label of "1" means.</p>
+    <p>For each image you upload, add the category so that your model can be trained</p>
     {{ formset.management_form }}
     {% for form in formset %}
         {{ form }}

@@ -86,25 +86,22 @@ def detail(request, image_id):
 def vote(request, image_id):
     image = get_object_or_404(ImageLabel, pk=image_id)
     choice = request.POST['choice']
-    if choice == "Abnormal":
-        selected_choice = image.abnormal_votes
+    if choice == 1:
+        selected_choice = image.one_votes
         selected_choice += 1
-        image.abnormal_votes = selected_choice
-    elif choice == "Normal":
-        selected_choice = image.normal_votes
+        image.one_votes = selected_choice
+    elif choice == 0:
+        selected_choice = image.zero_votes
         selected_choice += 1
-        image.normal_votes = selected_choice
+        image.zero_votes = selected_choice
     else:
         selected_choice = image.unknown_votes
         selected_choice += 1
         image.unknown_votes = selected_choice
-    # Always return an HttpResponseRedirect after successfully dealing
-    # with POST data. This prevents data from being posted twice if a
-    # user hits the Back button.
 
     # recalculate confidence based on new vote
-    if image.normal_votes + image.abnormal_votes != 0:
-        image.confidence = image.normal_votes / (image.normal_votes + image.abnormal_votes)
+    if image.one_votes + image.zero_votes != 0:
+        image.confidence = image.one_votes / (image.one_votes + image.zero_votes)
         # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
         image.adjusted_confidence = abs(image.confidence - 0.5)
     else:
