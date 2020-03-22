@@ -18,7 +18,7 @@ from .models import ImageLabel, MachineLearningModel
 from django.shortcuts import get_object_or_404, render
 
 class HomePageView(ListView):
-    model = ImageLabel
+    model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
 def CreatePostView(request):
@@ -51,13 +51,12 @@ def CreatePostView(request):
                     photo = ImageLabel(machine_learning_model=create_model_form, image_file=image_file, title=image_file)
                     photo.save()
             # after that's done, we can train the model
-            # this might not be right
             ml_model = get_object_or_404(MachineLearningModel, pk=create_model_form.id)
             t = Test_Skikit()
             t.launch_training(ml_model.title)
-            html = "<html><body>Training your model!</body></html>"
-            return HttpResponse(html)
-            # redirect to train the model
+            # redirect to model detail page
+            return HttpResponseRedirect('/model/' + str(create_model_form.id))
+
         else:
             print(createMLModelForm.errors, formset.errors)
     else:
@@ -69,9 +68,10 @@ def CreatePostView(request):
 def ml_model_detail(request, ml_model_id):
     try:
         ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
+        images = ml_model.imagelabel_set.all()
     except MachineLearningModel.DoesNotExist:
         raise Http404("Model does not exist")
-    return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model})
+    return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model, 'images': images})
 
 def LabelImageView(request):
     model = ImageLabel

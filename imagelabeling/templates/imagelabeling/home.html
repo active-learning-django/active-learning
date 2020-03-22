@@ -6,12 +6,11 @@
 </head>
 <body>
 <div class="container">
-    <h1>All uploaded cases</h1>
+    <h1>Choose a model</h1>
     <ul>
-      {% for image in object_list %}
+      {% for ml_model in object_list %}
           <div class="row">
-            <h2>{{ image.title }}</h2>
-            <img src="{{ image.image_file.url}}" class="img-fluid" alt="{{ image.title }}">
+              <h2><a href="/model/{{ml_model.id}}">{{ ml_model.title }}</a></h2>
           </div>
       {% endfor %}
     </ul>
