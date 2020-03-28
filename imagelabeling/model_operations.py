@@ -37,11 +37,13 @@ from keras.applications.densenet import preprocess_input
 from keras.models import Model
 from keras import backend as K
 
-class Test_Skikit:
+
+
+class ModelOperations:
     # this seems to go through the images and featurize them, then builds the model
     def train_model(self, model_name):
-        print("training model", model_name)
-        final_data = self.process_images('LABELED/NORMAL', 'LABELED/ABNORMAL', 'final_data_test_' + model_name + '.csv', 1)
+        print("training model " + model_name)
+        final_data = self.process_images(model_name, 'final_data_test_' + model_name + '.csv', 1)
 
         X_train, X_test, y_train, y_test = train_test_split(final_data.drop('label', axis=1), final_data['label'], test_size=0.20, random_state=0)
 
@@ -67,13 +69,12 @@ class Test_Skikit:
         joblib.dump(model, 'model_' + model_name + '.joblib')
         K.clear_session()
 
-    def process_images(self, directory_1, directory_2, export_file_name, label):
-        data_dir = Path('./media/images/mini')
-        normal_labeled_dir = data_dir / directory_1
-        abnormal_labeled_dir = data_dir / directory_2
-        normal_cases = normal_labeled_dir.glob('*.jpeg')
-        abnormal_cases = abnormal_labeled_dir.glob('*.jpeg')
+    def process_images(self, ml_model_name, export_file_name, label):
+        data_dir = Path('./media/ml_model_images/' + ml_model_name)
+        normal_cases = data_dir.glob('0_*.jpeg')
+        abnormal_cases = data_dir.glob('1_*.jpeg')
         data = []
+
         # Go through all the normal cases. The label for these cases will be 0
         if label:
             for img in normal_cases:

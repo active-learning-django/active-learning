@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from .test_skikit import Test_Skikit
+from .model_operations import ModelOperations
 
 # Create your views here.
 from django.views.generic import ListView, CreateView
@@ -52,7 +53,7 @@ def CreatePostView(request):
                     photo.save()
             # after that's done, we can train the model
             ml_model = get_object_or_404(MachineLearningModel, pk=create_model_form.id)
-            t = Test_Skikit()
+            t = ModelOperations()
             t.launch_training(ml_model.title)
             # redirect to model detail page
             return HttpResponseRedirect('/model/' + str(create_model_form.id))
@@ -73,39 +74,41 @@ def ml_model_detail(request, ml_model_id):
         raise Http404("Model does not exist")
     return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model, 'images': images})
 
-def LabelImageView(request):
-    model = ImageLabel
-    form_class = ImageLabelForm
+def LabelImageView(request, ml_model_id):
+    ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
     # logic to send the image we want user to vote on
-    desired_image_set = ImageLabel.objects.order_by('adjusted_confidence')
+    desired_image_set = ml_model.imagelabel_set.all().order_by('adjusted_confidence')
     if len(desired_image_set) == 0:
         html = "<html><body>Currently no images</body></html>"
         return HttpResponse(html)
     desired_image = desired_image_set[0]
-    context = {
-        'desired_image': desired_image,
-    }
-    template = loader.get_template('imagelabeling/label_image.html')
-    success_url = reverse_lazy('home')
-    return HttpResponse(template.render(context, request))
+    return render(request, 'imagelabeling/label_image.html', {'desired_image': desired_image, 'ml_model': ml_model})
 
-def image_label_detail(request, image_id):
+def image_label_detail(request, ml_model_id, image_id):
+    try:
+        ml_model = MachineLearningModel.get(pk=ml_model_id)
+    except MachineLearningModel.DoesNotExist:
+        raise Http404("Model does not exist")
     try:
         image = ImageLabel.objects.get(pk=image_id)
     except ImageLabel.DoesNotExist:
         raise Http404("Label does not exist")
-    return render(request, 'imagelabeling/image_label_detail.html', {'image': image})
+    return render(request, 'imagelabeling/image_label_detail.html', {'image': image, 'ml_model': ml_model})
 
 # this will just update our database with the user's vote of whether image is normal or abnormal
 # we will envoke this from our form in /label, template label_image
 def vote(request, image_id):
     image = get_object_or_404(ImageLabel, pk=image_id)
+    ml_model = image.machine_learning_model
+    ml_id = ml_model.id
     choice = request.POST['choice']
-    if choice == 1:
+    if choice == "1":
+        print("Choice is 1")
         selected_choice = image.one_votes
         selected_choice += 1
         image.one_votes = selected_choice
-    elif choice == 0:
+    elif choice == "0":
+        print("Choice is 0")
         selected_choice = image.zero_votes
         selected_choice += 1
         image.zero_votes = selected_choice
@@ -123,7 +126,7 @@ def vote(request, image_id):
         image.confidence = 0.5
         image.adjusted_confidence = 0
     image.save()
-    return HttpResponseRedirect('/label')
+    return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
 
 def trainModel(request, ml_model_id):
     ml_model = get_object_or_404(ImageLabel, pk=ml_model_id)

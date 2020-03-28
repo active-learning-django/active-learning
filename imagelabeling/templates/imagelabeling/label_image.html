@@ -6,12 +6,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>Label The Image either Normal or Abnormal</h1>
+        <h1>Model: {{ ml_model.title }}</h1>
+        <h2>Label The Image either Normal or Abnormal</h2>
          {%  if desired_image %}
-             <h2>{{ desired_image.title  }}</h2>
+             <h2>Image: {{ desired_image.title  }}</h2>
                     <img src="{{ desired_image.image_file.url }}" class="img-fluid">
              <p>Confidence Level (for testing): {{ desired_image.confidence }}</p>
-              <p>Adjusted Confidence Level (for ordering, for testing): {{ desired_image.adjusted_confidence }}</p>
+             <p>Adjusted Confidence Level (for ordering, for testing): {{ desired_image.adjusted_confidence }}</p>
         {% endif %}
 
     <form action="{% url 'vote' desired_image.id %}" method="post">

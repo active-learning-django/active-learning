@@ -7,8 +7,10 @@
 <body>
 <div class="container">
     <h1>{{ ml_model.title }}</h1>
+    <p>{{ ml_model.classification_notes }}</p>
     <div class="container">
         <h1>All uploaded cases</h1>
+        <p> <a href = "/model/{{ ml_model.id}}/label">Label images for this model &raquo;</a></p>
         <ul>
           {% for image in images %}
               <div class="row">
