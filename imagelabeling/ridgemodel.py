@@ -6,7 +6,7 @@ from sklearn.linear_model import RidgeCV
 
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
-
+from sklearn.externals import joblib
 
 class Model:
     # self == file path
@@ -47,11 +47,21 @@ class Model:
         ridge_refit.fit(train_X, train_y)
         ridge_refit.predict(test_X)
 
-        # run best model with a X data
-        prob = ridge_refit.predict(X)
+        #save model to Joblib Module
+        joblib_file = "joblib_model.pkl"
+        joblib.dump(ridge_refit, joblib_file)
 
-        score = ridge_refit.score(X, y)
-        # print("R^2 score: ", score)
+        # Load from file
+        joblib_model = joblib.load(joblib_file)
+
+        # run best model with a X data
+        # prob = ridge_refit.predict(X)
+
+        prob = joblib_model.predict(X)
+        print(prob)
+        # score = ridge_refit.score(X, y)
+        score = joblib_model.score(X, y)
+        print("R^2 score: ", score)
 
         # probability result
         data['probability'] = prob
