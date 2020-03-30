@@ -11,60 +11,82 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.http import Http404
 from django.forms import modelformset_factory
 
-from .forms import ImageLabelForm, CreateMachineLearningModelForm
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm
 from .models import ImageLabel, MachineLearningModel
+from django.core.files import File
 
-
+from zipfile import *
 
 from django.shortcuts import get_object_or_404, render
+
 
 class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
+
 def CreatePostView(request):
-    model = MachineLearningModel
-    form_class = CreateMachineLearningModelForm
-    template_name = 'imagelabeling/post.html'
-    success_url = reverse_lazy('home')
-    ImageFormSet = modelformset_factory(ImageLabel,
-                                        form=ImageLabelForm, extra=10)
     if request.method == 'POST':
 
         createMLModelForm = CreateMachineLearningModelForm(request.POST)
-        formset = ImageFormSet(request.POST, request.FILES,
-                               queryset=ImageLabel.objects.none())
+        bulk_upload_form = ImageBulkUploadForm(request.POST, request.FILES)
 
-        if createMLModelForm.is_valid() and formset.is_valid():
+        if createMLModelForm.is_valid() and bulk_upload_form.is_valid():
             create_model_form = createMLModelForm.save(commit=False)
             create_model_form.title = request.POST.get('title')
             create_model_form.save()
 
-            # for each image label form
-            for form in formset.cleaned_data:
-                # this helps to not crash if the user
-                # does not upload all the photos
-                # save the image objects to database
-                if form:
-                    image_file = form['image_file']
-                    # print(request.FILES)
-                    # sets up the foreign key association
-                    photo = ImageLabel(machine_learning_model=create_model_form, image_file=image_file, title=image_file)
-                    photo.save()
+            # parse the zip file and create imageLabel objects
+            print("about to handle files")
             # after that's done, we can train the model
             ml_model = get_object_or_404(MachineLearningModel, pk=create_model_form.id)
+            handle_uploaded_file(ml_model, request.FILES['bulk_upload'])
             t = ModelOperations()
             t.launch_training(ml_model.title)
             # redirect to model detail page
             return HttpResponseRedirect('/model/' + str(create_model_form.id))
-
         else:
-            print(createMLModelForm.errors, formset.errors)
+            print(createMLModelForm.errors, bulk_upload_form.errors)
     else:
         createMLModelForm = CreateMachineLearningModelForm()
-        formset = ImageFormSet(queryset=ImageLabel.objects.none())
+        bulk_upload_form = ImageBulkUploadForm(request.POST, request.FILES)
     return render(request, 'imagelabeling/post.html',
-                  {'CreateMachineLearningModelForm': CreateMachineLearningModelForm, 'formset': formset})
+                  {'CreateMachineLearningModelForm': CreateMachineLearningModelForm, 'bulk_upload_form': bulk_upload_form})
+
+
+def bulk_upload_view(request):
+    if request.method == 'POST':
+        form = ImageBulkUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            handle_uploaded_file(request.FILES['bulk_upload'])
+            return HttpResponseRedirect('/upload/')
+    else:
+        form = ImageBulkUploadForm()
+    return render(request, 'imagelabeling/bulk_upload_form.html',
+                  {'BulkUploadForm': form})
+
+
+def handle_uploaded_file(model, f):
+    print("handling zip file")
+    with ZipFile(f) as zip_file:
+        # get the list of files
+        names = zip_file.namelist()
+        print("names")
+        print(names)
+        # handle your files as you need. You can read the file with:
+        for name in names:
+            print("name " + name)
+            with zip_file.open(name) as f:
+                image_file = f.read()
+
+                print("name again")
+                # TODO change this directory later
+                with open(name + '.jpg', 'wb+') as destination:
+                    destination.write(image_file)
+                    photo = ImageLabel(machine_learning_model=model, image_file=destination, title=name)
+                    print("about to save")
+                    photo.save(name + '.jpg', File(open(name + '.jpg', "rb")))
+
 
 def ml_model_detail(request, ml_model_id):
     try:
@@ -73,6 +95,7 @@ def ml_model_detail(request, ml_model_id):
     except MachineLearningModel.DoesNotExist:
         raise Http404("Model does not exist")
     return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model, 'images': images})
+
 
 def LabelImageView(request, ml_model_id):
     ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
@@ -84,6 +107,7 @@ def LabelImageView(request, ml_model_id):
     desired_image = desired_image_set[0]
     return render(request, 'imagelabeling/label_image.html', {'desired_image': desired_image, 'ml_model': ml_model})
 
+
 def image_label_detail(request, ml_model_id, image_id):
     try:
         ml_model = MachineLearningModel.get(pk=ml_model_id)
@@ -94,6 +118,7 @@ def image_label_detail(request, ml_model_id, image_id):
     except ImageLabel.DoesNotExist:
         raise Http404("Label does not exist")
     return render(request, 'imagelabeling/image_label_detail.html', {'image': image, 'ml_model': ml_model})
+
 
 # this will just update our database with the user's vote of whether image is normal or abnormal
 # we will envoke this from our form in /label, template label_image
@@ -128,12 +153,14 @@ def vote(request, image_id):
     image.save()
     return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
 
+
 def trainModel(request, ml_model_id):
     ml_model = get_object_or_404(ImageLabel, pk=ml_model_id)
     t = Test_Skikit()
     t.launch_training(ml_model.title)
     html = "<html><body>Training your model!</body></html>"
     return HttpResponse(html)
+
 
 def testSkikit(request, ml_model_id):
     ml_model = get_object_or_404(ImageLabel, pk=ml_model_id)

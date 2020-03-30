@@ -12,8 +12,13 @@ class CreateMachineLearningModelForm(forms.ModelForm):
             'classification_notes': _('Classification Notes'),
         }
 
+
 class ImageLabelForm(forms.ModelForm):
     class Meta:
         model = ImageLabel
         fields = ["image_file", "model_classification"]
+
+
+class ImageBulkUploadForm(forms.Form):
+    bulk_upload = forms.FileField()
 

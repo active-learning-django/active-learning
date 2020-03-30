@@ -12,12 +12,9 @@
         <br /><br>
     {% endfor %}
     <p>Classification Notes should include instructions for what a label of "0" means, and what a label of "1" means.</p>
-    <p>For each image you upload, add the category so that your model can be trained</p>
-    {{ formset.management_form }}
-    {% for form in formset %}
-        {{ form }}
+    <p>Add Zip File of images to train model</p>
+        {{ bulk_upload_form }}
         <br>
-    {% endfor %}
     <br>
 
 
