@@ -29,9 +29,8 @@ def CreatePostView(request):
     if request.method == 'POST':
 
         createMLModelForm = CreateMachineLearningModelForm(request.POST)
-        bulk_upload_form = ImageBulkUploadForm(request.POST, request.FILES)
 
-        if createMLModelForm.is_valid() and bulk_upload_form.is_valid():
+        if createMLModelForm.is_valid():
             create_model_form = createMLModelForm.save(commit=False)
             create_model_form.title = request.POST.get('title')
             create_model_form.save()
@@ -39,31 +38,14 @@ def CreatePostView(request):
             # parse the zip file and create imageLabel objects
             print("about to handle files")
             # after that's done, we can train the model
-            ml_model = get_object_or_404(MachineLearningModel, pk=create_model_form.id)
-            handle_uploaded_file(ml_model, request.FILES['bulk_upload'])
-            t = ModelOperations()
-            t.launch_training(ml_model.title)
             # redirect to model detail page
-            return HttpResponseRedirect('/model/' + str(create_model_form.id))
+            return HttpResponseRedirect('/model/' + str(create_model_form.id) + '/upload')
         else:
-            print(createMLModelForm.errors, bulk_upload_form.errors)
+            print(createMLModelForm.errors)
     else:
         createMLModelForm = CreateMachineLearningModelForm()
-        bulk_upload_form = ImageBulkUploadForm(request.POST, request.FILES)
     return render(request, 'imagelabeling/post.html',
-                  {'CreateMachineLearningModelForm': CreateMachineLearningModelForm, 'bulk_upload_form': bulk_upload_form})
-
-
-def bulk_upload_view(request):
-    if request.method == 'POST':
-        form = ImageBulkUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            handle_uploaded_file(request.FILES['bulk_upload'])
-            return HttpResponseRedirect('/upload/')
-    else:
-        form = ImageBulkUploadForm()
-    return render(request, 'imagelabeling/bulk_upload_form.html',
-                  {'BulkUploadForm': form})
+                  {'CreateMachineLearningModelForm': CreateMachineLearningModelForm})
 
 
 def handle_uploaded_file(model, f):
@@ -80,12 +62,29 @@ def handle_uploaded_file(model, f):
                 image_file = f.read()
 
                 print("name again")
-                # TODO change this directory later
                 with open(name + '.jpg', 'wb+') as destination:
                     destination.write(image_file)
-                    photo = ImageLabel(machine_learning_model=model, image_file=destination, title=name)
+                    fileName = File(open(name + '.jpg', "wb+"))
+                    photo = ImageLabel(machine_learning_model=model, image_file=fileName, title=name)
                     print("about to save")
-                    photo.save(name + '.jpg', File(open(name + '.jpg', "rb")))
+
+                    photo.save()
+
+
+def bulk_upload_view(request, ml_model_id):
+    try:
+        ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
+    except MachineLearningModel.DoesNotExist:
+        raise Http404("Model does not exist")
+    if request.method == 'POST':
+        form = ImageBulkUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            handle_uploaded_file(ml_model, request.FILES['bulk_upload'])
+            return HttpResponseRedirect('/model/' + str(ml_model_id) + '/upload')
+    else:
+        form = ImageBulkUploadForm()
+    return render(request, 'imagelabeling/bulk_upload_form.html',
+                  {'BulkUploadForm': form, 'ml_model': ml_model})
 
 
 def ml_model_detail(request, ml_model_id):
@@ -95,7 +94,6 @@ def ml_model_detail(request, ml_model_id):
     except MachineLearningModel.DoesNotExist:
         raise Http404("Model does not exist")
     return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model, 'images': images})
-
 
 def LabelImageView(request, ml_model_id):
     ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
