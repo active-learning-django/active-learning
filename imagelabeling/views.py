@@ -38,7 +38,7 @@ class HomePageView(ListView):
     template_name = 'imagelabeling/home.html'
 
 
-def ProbablityView(request):
+def IterationInputPage(request):
 
     model = NumOfIteration
     form_class = NumOfIterationForm
@@ -46,7 +46,7 @@ def ProbablityView(request):
     return render(request, 'imagelabeling/temp.html',{'form': form_class})
 
 
-
+def DisplayROC(request):
     path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
     data = Model.ridge_regression(path)
     #
@@ -58,9 +58,6 @@ def ProbablityView(request):
     actual = data['label'].values.reshape(-1, 1)
     false_positive_rate, true_positive_rate, thresholds = roc_curve(actual, prediction)
     roc_auc = auc(false_positive_rate, true_positive_rate)
-    fig = plt.Figure()
-
-
     plt.title('ROC curve for Ridge Regression Model')
     plt.plot(false_positive_rate, true_positive_rate, 'b',
              label='AUC = %0.2f' % roc_auc)
@@ -77,11 +74,9 @@ def ProbablityView(request):
     fig.savefig(buf, format='png')
     buf.seek(0)
     string = base64.b64encode(buf.read())
-    uri = 'data:image/png;base64,' + urllib.parse.quote(string)
-    html = '<img src = "%s"/>' % uri
+    uri = urllib.parse.quote(string)
 
-    return HttpResponse(html)
-
+    return render(request, 'imagelabeling/graph.html', {'data': uri})
 
 def CreatePostView(request):
     model = MachineLearningModel
