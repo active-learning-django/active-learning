@@ -22,5 +22,5 @@ class ImageLabelForm(forms.ModelForm):
 class NumOfIterationForm(forms.ModelForm):
     class Meta:
         model = NumOfIteration
-        fields = ['numInter']
+        fields = ['Iteration']
 

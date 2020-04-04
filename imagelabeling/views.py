@@ -17,7 +17,6 @@ from django.shortcuts import get_object_or_404, render
 import pandas as pd
 import openpyxl
 import os
-from .compute import findsin
 
 from .ridgemodel import Model
 from sklearn.metrics import roc_curve, auc
@@ -44,7 +43,7 @@ def ProbablityView(request):
     model = NumOfIteration
     form_class = NumOfIterationForm
     template_name = 'imagelabeling/temp.html'
-    return render(request, 'imagelabeling/temp.html',)
+    return render(request, 'imagelabeling/temp.html',{'form': form_class})
 
 
 
