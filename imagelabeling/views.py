@@ -67,7 +67,6 @@ def handle_uploaded_file(model, f):
                     fileName = File(open(name + '.jpg', "wb+"))
                     photo = ImageLabel(machine_learning_model=model, image_file=fileName, title=name)
                     print("about to save")
-
                     photo.save()
 
 
