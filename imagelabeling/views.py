@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+import csv
 from .test_skikit import Test_Skikit
 
 # Create your views here.
@@ -10,16 +11,78 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.http import Http404
 from django.forms import modelformset_factory
 
-from .forms import ImageLabelForm, CreateMachineLearningModelForm
-from .models import ImageLabel, MachineLearningModel
-
-
-
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, NumOfIterationForm
+from .models import ImageLabel, MachineLearningModel, NumOfIteration
 from django.shortcuts import get_object_or_404, render
+import pandas as pd
+import openpyxl
+import os
+from .compute import findsin
+
+from .ridgemodel import Model
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
+import statistics
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+from matplotlib import pylab
+from pylab import *
+import io, urllib, base64
+
+
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
+
 
 class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
+
+
+def ProbablityView(request):
+
+    model = NumOfIteration
+    form_class = NumOfIterationForm
+    template_name = 'imagelabeling/temp.html'
+    return render(request, 'imagelabeling/temp.html',)
+
+
+
+    path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
+    data = Model.ridge_regression(path)
+    #
+    # newdf = Model.concateData(data)
+    #
+    # return HttpResponse(len(newdf))
+
+    prediction = data['probability']
+    actual = data['label'].values.reshape(-1, 1)
+    false_positive_rate, true_positive_rate, thresholds = roc_curve(actual, prediction)
+    roc_auc = auc(false_positive_rate, true_positive_rate)
+    fig = plt.Figure()
+
+
+    plt.title('ROC curve for Ridge Regression Model')
+    plt.plot(false_positive_rate, true_positive_rate, 'b',
+             label='AUC = %0.2f' % roc_auc)
+    plt.legend(loc='lower right')
+    plt.plot([0, 1], [0, 1], 'r--')
+    plt.xlim([-0.1, 1.2])
+    plt.ylim([-0.1, 1.2])
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+
+    fig = plt.gcf()
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    string = base64.b64encode(buf.read())
+    uri = 'data:image/png;base64,' + urllib.parse.quote(string)
+    html = '<img src = "%s"/>' % uri
+
+    return HttpResponse(html)
+
 
 def CreatePostView(request):
     model = MachineLearningModel
@@ -139,7 +202,5 @@ def testSkikit(request, ml_model_id):
 
     html = "<html><body>Testing the model against new data!</body></html>"
     return HttpResponse(html)
-
-
 
 
