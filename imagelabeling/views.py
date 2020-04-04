@@ -57,17 +57,17 @@ def handle_uploaded_file(model, f):
         print(names)
         # handle your files as you need. You can read the file with:
         for name in names:
-            print("name " + name)
-            with zip_file.open(name) as f:
-                image_file = f.read()
+            image_file = zip_file.extract(name, "media/ml_model_images/" + model.title + "/")
+            # hacky but need to reassign so correct path is assigned
+            image_file = "ml_model_images/" + model.title + "/" + name
+            photo = ImageLabel(machine_learning_model=model, image_file=image_file, title=name)
+            photo.save()
+            print("name again")
+            # with zip_file.open(name) as file:
+                # image_file = file.read()
+                # final_file =
 
-                print("name again")
-                with open(name + '.jpg', 'wb+') as destination:
-                    destination.write(image_file)
-                    fileName = File(open(name + '.jpg', "wb+"))
-                    photo = ImageLabel(machine_learning_model=model, image_file=fileName, title=name)
-                    print("about to save")
-                    photo.save()
+
 
 
 def bulk_upload_view(request, ml_model_id):

@@ -11,7 +11,7 @@ class MachineLearningModel(models.Model):
 def get_image_filename(instance, filename):
     title = instance.machine_learning_model.title
     slug_title = slugify(title)
-    return "ml_model_images/%s/%s" % (slug_title, filename)
+    return "../ml_model_images/%s/%s" % (slug_title, filename)
 
 class ImageLabel(models.Model):
     label_option = (

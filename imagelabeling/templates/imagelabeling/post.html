@@ -1,18 +1,23 @@
-<h1>Create Model</h1>
-<form id="create_model_form" method="post" action="" enctype="multipart/form-data">
-
-    {% csrf_token %}
-    {% for hidden in CreateMachineLearningModelForm.hidden_fields %}
-        {{ hidden }}
-    {% endfor %}
-
-    {% for field in CreateMachineLearningModelForm %}
-        <br>
-        {{ field.label }}: {{ field }}
-        <br /><br>
-    {% endfor %}
-    <p>Classification Notes should include instructions for what a label of "0" means, and what a label of "1" means.</p>
+{%  extends "imagelabeling/base.html" %}
+{% block headingtitle %} Create Model {% endblock %}
 
 
-    <input type="submit" name="submit" value="Create Model with provided images" />
-</form>
+{% block content %}
+    <h1> {% block title %} Create Model {% endblock %} </h1>
+    <form id="create_model_form" method="post" action="" enctype="multipart/form-data">
+
+        {% csrf_token %}
+        {% for hidden in CreateMachineLearningModelForm.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
+
+        {% for field in CreateMachineLearningModelForm %}
+            {{ field.label }}: {{ field }}
+            <br /><br>
+        {% endfor %}
+        <p>Classification Notes should include instructions for what a label of "0" means, and what a label of "1" means.</p>
+
+
+        <input type="submit" name="submit" value="Create Model with provided images" />
+    </form>
+{% endblock %}
