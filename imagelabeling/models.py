@@ -3,6 +3,8 @@ from django.db import models
 # Create your models here.
 from django.db import models
 from django.template.defaultfilters import slugify
+from django.forms import ModelForm
+from django import forms
 
 class MachineLearningModel(models.Model):
     title = models.CharField(max_length=100, unique=True)
@@ -35,3 +37,13 @@ class ImageLabel(models.Model):
 
 class Classifier(models.Model):
     print("classifier model")
+
+
+class NumOfIteration(models.Model):
+
+    INTEGER_CHOICES = [tuple([x, x]) for x in range(1, 10)]
+    Iteration = models.CharField(max_length=100, choices=INTEGER_CHOICES)
+
+    def __str__(self):
+        return self.Iteration
+

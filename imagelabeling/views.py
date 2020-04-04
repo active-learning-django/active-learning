@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+import csv
 from .test_skikit import Test_Skikit
 from .model_operations import ModelOperations
 
@@ -11,19 +12,73 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.http import Http404
 from django.forms import modelformset_factory
 
-from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm
-from .models import ImageLabel, MachineLearningModel
-from django.core.files import File
-
 from zipfile import *
-
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, NumOfIterationForm
+from .models import ImageLabel, MachineLearningModel, NumOfIteration
 from django.shortcuts import get_object_or_404, render
+import pandas as pd
+import openpyxl
+import os
+
+from .ridgemodel import Model
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
+import statistics
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+from matplotlib import pylab
+from pylab import *
+import io, urllib, base64
+
+
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
 
 
 class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
+
+def IterationInputPage(request):
+
+    model = NumOfIteration
+    form_class = NumOfIterationForm
+    template_name = 'imagelabeling/temp.html'
+    return render(request, 'imagelabeling/temp.html',{'form': form_class})
+
+
+def DisplayROC(request):
+    path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
+    data = Model.ridge_regression(path)
+    #
+    # newdf = Model.concateData(data)
+    #
+    # return HttpResponse(len(newdf))
+
+    prediction = data['probability']
+    actual = data['label'].values.reshape(-1, 1)
+    false_positive_rate, true_positive_rate, thresholds = roc_curve(actual, prediction)
+    roc_auc = auc(false_positive_rate, true_positive_rate)
+    plt.title('ROC curve for Ridge Regression Model')
+    plt.plot(false_positive_rate, true_positive_rate, 'b',
+             label='AUC = %0.2f' % roc_auc)
+    plt.legend(loc='lower right')
+    plt.plot([0, 1], [0, 1], 'r--')
+    plt.xlim([-0.1, 1.2])
+    plt.ylim([-0.1, 1.2])
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+
+    fig = plt.gcf()
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    string = base64.b64encode(buf.read())
+    uri = urllib.parse.quote(string)
+
+    return render(request, 'imagelabeling/graph.html', {'data': uri})
 
 def CreatePostView(request):
     if request.method == 'POST':
@@ -63,11 +118,6 @@ def handle_uploaded_file(model, f):
             photo = ImageLabel(machine_learning_model=model, image_file=image_file, title=name)
             photo.save()
             print("name again")
-            # with zip_file.open(name) as file:
-                # image_file = file.read()
-                # final_file =
-
-
 
 
 def bulk_upload_view(request, ml_model_id):
@@ -166,7 +216,5 @@ def testSkikit(request, ml_model_id):
 
     html = "<html><body>Testing the model against new data!</body></html>"
     return HttpResponse(html)
-
-
 
 
