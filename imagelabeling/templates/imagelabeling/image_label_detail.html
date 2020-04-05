@@ -8,7 +8,7 @@
         <div class="row">
             <img src="{{ image.image_file.url}}" class="img-fluid" alt="{{ image.title }}">
         </div>
-            <p>Confidence: {{ image.confidence }}</p>
+            <p>Confidence: {{ image.user_score }}</p>
             <p>Abnormal Votes: {{ image.abnormal_votes }}</p>
             <p>Normal Votes: {{ image.normal_votes }}</p>
             <p>Unknown Votes: {{ image.unknown_votes }}</p>

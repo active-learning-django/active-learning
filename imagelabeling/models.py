@@ -24,8 +24,9 @@ class ImageLabel(models.Model):
 
     title = models.CharField(max_length=100)
     model_classification = models.CharField(max_length=100, choices=label_option)
-    confidence = models.FloatField(default=0.5)
-    adjusted_confidence = models.FloatField(default=0)
+    user_score = models.FloatField(default=0.5)
+    adjusted_user_score = models.FloatField(default=0)
+    model_score = models.FloatField(default=0)
     one_votes = models.IntegerField(default=0)
     zero_votes = models.IntegerField(default=0)
     unknown_votes = models.IntegerField(default=0)

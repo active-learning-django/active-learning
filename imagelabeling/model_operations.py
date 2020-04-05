@@ -6,7 +6,8 @@ print(__doc__)
 
 # thread
 import threading
-
+#os for directory  walking
+import os
 # Standard scientific Python imports
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,6 +44,7 @@ class ModelOperations:
     # this seems to go through the images and featurize them, then builds the model
     def train_model(self, model_name):
         print("training model " + model_name)
+
         final_data = self.process_images(model_name, 'final_data_test_' + model_name + '.csv', 1)
 
         X_train, X_test, y_train, y_test = train_test_split(final_data.drop('label', axis=1), final_data['label'], test_size=0.20, random_state=0)
@@ -66,13 +68,16 @@ class ModelOperations:
         # now also check the unlabeled images and figure assign what they are
 
         # for now, just dump the model into a file, if model.joblib does not exist
-        joblib.dump(model, 'model_' + model_name + '.joblib')
+        joblib.dump(model, 'model_joblibs/model_' + model_name + '.joblib')
         K.clear_session()
 
     def process_images(self, ml_model_name, export_file_name, label):
+        # check if there's a directory first because the zip file module functionality
         data_dir = Path('./media/ml_model_images/' + ml_model_name)
-        normal_cases = data_dir.glob('0_*.jpeg')
-        abnormal_cases = data_dir.glob('1_*.jpeg')
+
+        # loop through the subdirectories
+        normal_cases = data_dir.glob('**/0_*.jpeg')
+        abnormal_cases = data_dir.glob('**/1_*.jpeg')
         data = []
 
         # Go through all the normal cases. The label for these cases will be 0
@@ -88,21 +93,12 @@ class ModelOperations:
                 if imgx.shape[2] == 3:
                     data.append((img, 1))
 
-        # Go through all the abnormal cases. The label for these cases will be 'NA'
-        # this causes an error, had to make it 0 for now
+        # if we're not labeling it, return dataframe of image features from when we trained it
         else:
-            for img in normal_cases:
-                imgx = cv2.imread(str(img))
-                if imgx.shape[2] == 3:
-                    data.append((img, 0))
+            data = pd.read_csv(export_file_name)
+            return data
 
-            # Go through all the abnormal cases. The label for these cases will be 1
-            for img in abnormal_cases:
-                imgx = cv2.imread(str(img))
-                if imgx.shape[2] == 3:
-                    data.append((img, 0))
-
-        # Get a pandas dataframe from the data we have in our list
+            # Get a pandas dataframe from the data we have in our list
         data = pd.DataFrame(data, columns=['image', 'label'], index=None)
 
         # Shuffle the data
@@ -130,11 +126,13 @@ class ModelOperations:
         final_data = final_data.drop(columns='image')
         return final_data
 
+    # idea here is to make predictions with the saved ml_model
+    # and save to the corresponding image_label in database
     def predict_with_model(self, model_name):
         print("Predicting")
-        final_data = self.process_images('UNLABELED/NORMAL', 'UNLABELED/ABNORMAL', 'final_data_predicted.csv', 0)
+        final_data = self.process_images(model_name, 'final_data_test_' + model_name + '.csv', 0)
         K.clear_session()
-        model = joblib.load('model_' + model_name + '.joblib')
+        model = joblib.load('model_joblibs/model_' + model_name + '.joblib')
 
         # final_data = final_data.reset_index()
         # we create our test and training sets

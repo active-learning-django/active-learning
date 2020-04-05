@@ -41,15 +41,19 @@ class HomePageView(ListView):
 
 
 def IterationInputPage(request):
-
     model = NumOfIteration
     form_class = NumOfIterationForm
     template_name = 'imagelabeling/temp.html'
     return render(request, 'imagelabeling/temp.html',{'form': form_class})
 
 
-def DisplayROC(request):
-    path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
+def DisplayROC(request, ml_model_id):
+    try:
+        ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
+    except MachineLearningModel.DoesNotExist:
+        raise Http404("Model does not exist")
+    # need to figure out path
+    path = 'final_data_test_' + ml_model.title + '.csv'
     data = Model.ridge_regression(path)
     #
     # newdf = Model.concateData(data)
@@ -129,7 +133,7 @@ def bulk_upload_view(request, ml_model_id):
         form = ImageBulkUploadForm(request.POST, request.FILES)
         if form.is_valid():
             handle_uploaded_file(ml_model, request.FILES['bulk_upload'])
-            return HttpResponseRedirect('/model/' + str(ml_model_id) + '/upload')
+            return HttpResponseRedirect('/model/' + str(ml_model_id) + '/train')
     else:
         form = ImageBulkUploadForm()
     return render(request, 'imagelabeling/bulk_upload_form.html',
@@ -144,10 +148,11 @@ def ml_model_detail(request, ml_model_id):
         raise Http404("Model does not exist")
     return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model, 'images': images})
 
+
 def LabelImageView(request, ml_model_id):
     ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
     # logic to send the image we want user to vote on
-    desired_image_set = ml_model.imagelabel_set.all().order_by('adjusted_confidence')
+    desired_image_set = ml_model.imagelabel_set.all().order_by('adjusted_user_score')
     if len(desired_image_set) == 0:
         html = "<html><body>Currently no images</body></html>"
         return HttpResponse(html)
@@ -191,30 +196,60 @@ def vote(request, image_id):
 
     # recalculate confidence based on new vote
     if image.one_votes + image.zero_votes != 0:
-        image.confidence = image.one_votes / (image.one_votes + image.zero_votes)
+        image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
         # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
-        image.adjusted_confidence = abs(image.confidence - 0.5)
+        image.adjusted_user_score = abs(image.user_score - 0.5)
     else:
-        image.confidence = 0.5
-        image.adjusted_confidence = 0
+        image.user_score = 0.5
+        image.adjusted_user_score = 0
     image.save()
     return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
 
 
+# this trains the model once, then should redirect to iteration page i think
 def trainModel(request, ml_model_id):
-    ml_model = get_object_or_404(ImageLabel, pk=ml_model_id)
-    t = Test_Skikit()
-    t.launch_training(ml_model.title)
-    html = "<html><body>Training your model!</body></html>"
-    return HttpResponse(html)
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    t = ModelOperations()
+    # change from the multithreaded solution since that might be breaking
+    t.train_model(ml_model.title)
+    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
+
+def updateImagesWithModelPrediction(request, ml_model_id):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    images = ml_model.imagelabel_set.all()
+    df = pd.read_csv('final_data_test_' + ml_model.title + '.csv')
+    for image in images:
+        title = "media/ml_model_images/" + ml_model.title + "/" + image.title
+        entry = df.loc[df['image'] == title]
+        print(entry)
+        # check for broken image labels
+        if len(entry) > 0:
+            image.model_score = entry["label"]
+            image.save()
+    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/prob')
+
+
+
 
 
 def testSkikit(request, ml_model_id):
-    ml_model = get_object_or_404(ImageLabel, pk=ml_model_id)
-    t = Test_Skikit()
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    t = ModelOperations()
     t.launch_predicting(ml_model.title)
 
     html = "<html><body>Testing the model against new data!</body></html>"
+    return HttpResponse(html)
+
+# want to get all the image labels for this model
+# then we want to compare how the users labeled the model,
+# to how the model predicts these labels
+# so we can double check them, pretty much
+def visualization(request, ml_model_id):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    images = ml_model.imagelabel_set.all()
+    # so from each image, we need the adjusted prediction number by the model
+    # then the number given by the labelers
+    html = "<html><body>Visualization will go here!</body></html>"
     return HttpResponse(html)
 
 
