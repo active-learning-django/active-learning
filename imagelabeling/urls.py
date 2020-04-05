@@ -14,5 +14,5 @@ urlpatterns = [
     path('label/<int:image_id>/', views.image_label_detail, name='detail'),
     path('label/<int:image_id>/vote/', views.vote, name='vote'),
     path('it/', views.IterationInputPage, name='ask_user_for_num_interation'),
-    path('prob/', views.DisplayROC, name='display_ROC_Curve'),
+
 ]
