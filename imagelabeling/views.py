@@ -4,33 +4,34 @@ import csv
 from .test_skikit import Test_Skikit
 from .model_operations import ModelOperations
 
-# Create your views here.
+# views here.
 from django.views.generic import ListView, CreateView
-from django.urls import reverse_lazy, reverse
-from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import Http404
-from django.forms import modelformset_factory
 
+# for turning queryset to json
+from django.core import serializers
+
+# zipfile for handling bulk upload
 from zipfile import *
+
+# get the forms
 from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, NumOfIterationForm
 from .models import ImageLabel, MachineLearningModel, NumOfIteration
 from django.shortcuts import get_object_or_404, render
+
+# ml stuff
 import pandas as pd
 import openpyxl
 import os
-
 from .ridgemodel import Model
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 import statistics
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-
 from matplotlib import pylab
 from pylab import *
 import io, urllib, base64
-
-
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 
@@ -229,7 +230,18 @@ def updateImagesWithModelPrediction(request, ml_model_id):
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/prob')
 
 
-
+# want to get all the image labels for this model
+# then we want to compare how the users labeled the model,
+# to how the model predicts these labels
+# so we can double check them, pretty much
+def visualization(request, ml_model_id):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    images = ml_model.imagelabel_set.all()
+    images_json = serializers.serialize('json', images)
+    # so from each image, we need the adjusted prediction number by the model
+    # then the number given by the labelers
+    html = "<html><body>Visualization will go here!</body></html>"
+    return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
 
 
 def testSkikit(request, ml_model_id):
@@ -238,18 +250,6 @@ def testSkikit(request, ml_model_id):
     t.launch_predicting(ml_model.title)
 
     html = "<html><body>Testing the model against new data!</body></html>"
-    return HttpResponse(html)
-
-# want to get all the image labels for this model
-# then we want to compare how the users labeled the model,
-# to how the model predicts these labels
-# so we can double check them, pretty much
-def visualization(request, ml_model_id):
-    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
-    images = ml_model.imagelabel_set.all()
-    # so from each image, we need the adjusted prediction number by the model
-    # then the number given by the labelers
-    html = "<html><body>Visualization will go here!</body></html>"
     return HttpResponse(html)
 
 

@@ -7,7 +7,8 @@
              <h2>Image: {{ desired_image.title  }}</h2>
                     <img src="{{ desired_image.image_file.url }}" class="img-fluid">
              <p>User Assignment Score (here for testing): {{ desired_image.user_score }}</p>
-             <p>Model Assignment Score (here for testing, order by this): {{ desired_image.adjusted_user_score }}</p>
+             <p>Adjusted Score (here for testing, order by this): {{ desired_image.adjusted_user_score }}</p>
+             <p>Model's score (here for testing): {{ desired_image.model_score }}</p>
         {% endif %}
 
     <form action="{% url 'vote' desired_image.id %}" method="post">

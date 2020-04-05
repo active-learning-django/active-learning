@@ -1,0 +1,86 @@
+{%  extends "imagelabeling/base.html" %}
+{% block content %}
+<h1 class="h2">Model: {{ ml_model.title }}</h1>
+<div id="container" class="svg-container"> Hi</div>
+
+<script>
+/* load in images information, use d3 */
+    data_from_django = {{ images|safe }};
+    /* widget.init(data_from_django); */
+    console.log(data_from_django)
+
+//-----------------------DATA PREPARATION------------------------//
+let final_data = [];
+for (let i = 0; i < data_from_django.length; i++) {
+    let d = data_from_django[i];
+    let modified_object = {};
+    modified_object.id = d.pk;
+    modified_object.model_score = d.fields.model_score;
+    modified_object.user_score = d.fields.user_score;
+    modified_object.title= d.fields.title;
+    modified_object.pk = d.pk;
+    final_data.push(modified_object);
+}
+console.log(final_data);
+
+//------------------------SVG PREPARATION------------------------//
+// set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 30, left: 60},
+    width = 460 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#container")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+  // Add X axis
+  var x = d3.scaleLinear()
+    .domain([0, 1])
+    .range([ 0, width ]);
+  svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x));
+
+    // text label for the x axis
+  svg.append("text")
+      .attr("transform",
+            "translate(" + (width/2) + " ," +
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("Model Score");
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([0, 1])
+    .range([ height, 0]);
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  // text label for the y axis
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("User Score");
+
+  // Add dots
+  svg.append('g')
+    .selectAll("dot")
+    .data(final_data)
+    .enter()
+    .append("circle")
+      .attr("cx", function (d) { return x(d.model_score); } )
+      .attr("cy", function (d) { return y(d.user_score); } )
+      .attr("r", 5)
+      .style("fill", "#69b3a2")
+
+
+</script>
+{%  endblock %}
