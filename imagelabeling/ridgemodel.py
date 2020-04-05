@@ -7,7 +7,7 @@ from sklearn.linear_model import RidgeCV
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 import statistics
-class Model:
+class Calculation:
     # def readCSV(self):
     #     data = pd.read_csv(self)
     #     data.drop(['Unnamed: 0'], axis=1, inplace=True)

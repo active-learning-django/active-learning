@@ -18,7 +18,7 @@ import pandas as pd
 import openpyxl
 import os
 
-from .ridgemodel import Model
+from .ridgemodel import Calculation
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 import statistics
@@ -40,22 +40,77 @@ class HomePageView(ListView):
 
 def IterationInputPage(request):
 
-    model = NumOfIteration
-    form_class = NumOfIterationForm
-    template_name = 'imagelabeling/temp.html'
-    return render(request, 'imagelabeling/temp.html',{'form': form_class})
+    if request.method == 'GET':
+        model = NumOfIteration
+        form_class = NumOfIterationForm
+        template_name = 'imagelabeling/temp.html'
+        return render(request, 'imagelabeling/temp.html', {'form': form_class})
+
+    elif request.method == "POST":
+        form_class = NumOfIterationForm
+        input = NumOfIterationForm(request.POST)
+        if input.is_valid():
+            text = input.cleaned_data['Iteration']
+            print(type(text))
+
+            path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
+            firstdf = Calculation.ridge_regression(path)
+            concatedf = Calculation.concateData(firstdf)
+            #
+            for i in range(2, text):
+                data = Calculation.ridge_regression(concatedf)
+                concatedf = Calculation.concateData(data)
+
+            prediction = concatedf['probability']
+            actual = concatedf['label'].values.reshape(-1, 1)
+
+            false_positive_rate, true_positive_rate, thresholds = roc_curve(actual, prediction)
+            roc_auc = auc(false_positive_rate, true_positive_rate)
+            plt.title('ROC curve for Ridge Regression Model')
+            plt.plot(false_positive_rate, true_positive_rate, 'b',
+                     label='AUC = %0.2f' % roc_auc)
+            plt.legend(loc='lower right')
+            plt.plot([0, 1], [0, 1], 'r--')
+            plt.xlim([-0.1, 1.2])
+            plt.ylim([-0.1, 1.2])
+            plt.ylabel('True Positive Rate')
+            plt.xlabel('False Positive Rate')
+
+            fig = plt.gcf()
+
+            buf = io.BytesIO()
+            fig.savefig(buf, format='png')
+            buf.seek(0)
+            string = base64.b64encode(buf.read())
+            uri = urllib.parse.quote(string)
+
+            return render(request, 'imagelabeling/graph.html', {'data': uri})
+
+
+# def viewIterationInput(request):
+#     form_class = NumOfIterationForm
+#     input = NumOfIterationForm(request.POST)
+#     if input.is_valid():
+#         text = input.cleaned_data['Iteration']
+#         print(type(text))
+#
+#     args = {'form': form_class, 'text': text}
+#     return HttpResponseRedirect(request, 'imagelabeling/temp.html', args)
 
 
 def DisplayROC(request):
     path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
-    data = Model.ridge_regression(path)
+    firstdf = Calculation.ridge_regression(path)
+    concatedf = Calculation.concateData(firstdf)
     #
-    # newdf = Model.concateData(data)
-    #
-    # return HttpResponse(len(newdf))
+    for i in range(2,5):
+        data = Calculation.ridge_regression(concatedf)
+        concatedf = Calculation.concateData(data)
 
-    prediction = data['probability']
-    actual = data['label'].values.reshape(-1, 1)
+
+    prediction = concatedf['probability']
+    actual = concatedf['label'].values.reshape(-1, 1)
+
     false_positive_rate, true_positive_rate, thresholds = roc_curve(actual, prediction)
     roc_auc = auc(false_positive_rate, true_positive_rate)
     plt.title('ROC curve for Ridge Regression Model')
