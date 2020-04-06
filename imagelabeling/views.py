@@ -163,7 +163,7 @@ def LabelImageView(request, ml_model_id):
 
 def image_label_detail(request, ml_model_id, image_id):
     try:
-        ml_model = MachineLearningModel.get(pk=ml_model_id)
+        ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     except MachineLearningModel.DoesNotExist:
         raise Http404("Model does not exist")
     try:

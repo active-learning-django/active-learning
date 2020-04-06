@@ -3,18 +3,18 @@
 {% block content %}
     <h1 class="h2">{{ ml_model.title }}</h1>
     <p>{{ ml_model.classification_notes }}</p>
-    <div class="container">
         <h1 class="h2">All uploaded cases</h1>
         <p> <a href = "/model/{{ ml_model.id}}/upload">Upload images to train this model &raquo;</a></p>
         <p> <a href = "/model/{{ ml_model.id}}/label">Label images for this model &raquo;</a></p>
-        <ul>
-          {% for image in images %}
-              <div class="row">
-                <h2>{{ image.title }}</h2>
-                <img src="{{ image.image_file.url}}" class="img-fluid" alt="{{ image.title }}">
+            <div class="row">
+              {% for image in images %}
+              <div class="col-lg-3 col-md-4 col-6">
+                <h2 class="h5 word-break">{{ image.title }}</h2>
+                <a href="/model/{{ ml_model.pk }}/label/{{ image.pk }}">
+                <img src="{{ image.image_file.url}}" class="img-fluid img-thumbnail" alt="{{ image.title }}">
+                </a>
               </div>
-          {% endfor %}
-        </ul>
-    </div>
+              {% endfor %}
+            </div>
 
 {% endblock %}
