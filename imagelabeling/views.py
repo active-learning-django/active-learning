@@ -24,7 +24,7 @@ from django.shortcuts import get_object_or_404, render
 import pandas as pd
 import openpyxl
 import os
-from .ridgemodel import Model
+
 from .ridgemodel import Calculation
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
