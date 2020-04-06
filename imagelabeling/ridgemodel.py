@@ -6,8 +6,8 @@ from sklearn.linear_model import RidgeCV
 
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
-import statistics
-class Model:
+import unittest
+class Calculation:
     # def readCSV(self):
     #     data = pd.read_csv(self)
     #     data.drop(['Unnamed: 0'], axis=1, inplace=True)
@@ -19,14 +19,14 @@ class Model:
     def ridge_regression(self):
         # p = '../final_data_test.csv'
         # input = p
-        data = pd.read_csv(self)
-        data.drop(['Unnamed: 0'], axis=1, inplace=True)
-        data['dif'] = 0
-        data['probability'] = 0
+        # data = pd.read_csv(self)
+        # data.drop(['Unnamed: 0'], axis=1, inplace=True)
+        # data['dif'] = 0
+        # data['probability'] = 0
         # data = self
         # seperate x,y
-        X = data.drop(['label', "image", 'dif', 'probability'], axis=1)
-        y = data['label'].values.reshape(-1, 1)
+        X = self.drop(['label', "image", 'dif', 'probability'], axis=1)
+        y = self['label'].values.reshape(-1, 1)
 
         # split train_test
         train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=0)
@@ -64,14 +64,14 @@ class Model:
         # print("R^2 score: ", score)
 
         # probability result
-        data['probability'] = prob
+        self['probability'] = prob
 
         # calculate absolute value
-        data['dif'] = abs(data['probability'] - 0.5)
+        self['dif'] = abs(self['probability'] - 0.5)
 
         # result = [data, data['probability'], data['dif'],score]
 
-        return data
+        return self
 
     def findprob(self):
         return self['probability']
@@ -102,20 +102,33 @@ class Model:
         low_diff = self[self['dif'] < 0.3]
 
         newdf = pd.concat([self,low_diff],axis = 0)
+
         return newdf
 
 #
 # if __name__ == '__main__':
-
+    # unittest.main()
+    #
     # path = '../final_data_test.csv'
-    # data = Model.readCSV(path)
-    # print(Model.readCSV(path))
-
-    #read file & run ridge regression
-    # result = Model.ridge_regression(path)
-    # print(statistics.mean(result))
-    #create ROC curve
-    # Model.ROC(result)
+    # # # path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
+    # data = pd.read_csv(path)
+    # data.drop(['Unnamed: 0'], axis=1, inplace=True)
+    # data['dif'] = 0
+    # data['probability'] = 0
+    # # print(data)
+    #
+    # #read file & run ridge regression
+    # result = Calculation.ridge_regression(data)
+    # # print(result)
+    # finaldf = result
+    # #
+    # for i in range(2,4):
+    #     tempdf = Calculation.ridge_regression(result)
+    #     finaldf = Calculation.concateData(tempdf)
+    #
+    #     print(len(finaldf))
+    # #create ROC curve
+    # Calculation.ROC(result)
     #
     # add uncertain cases to original data
-    # print(Model.concateData(result[0]))
+    # print(Calculation.concateData(result[0]))
