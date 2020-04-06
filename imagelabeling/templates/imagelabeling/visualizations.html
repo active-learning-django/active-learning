@@ -4,6 +4,7 @@
 <div id="container" class="svg-container"></div>
 
 <script>
+let count = 50;
 /* load in images information, use d3 */
     data_from_django = {{ images|safe }};
     /* widget.init(data_from_django); */
@@ -39,20 +40,20 @@ var svg = d3.select("#container")
           "translate(" + margin.left + "," + margin.top + ")");
 
   // Add X axis
-  var x = d3.scaleLinear()
-    .domain([0, 1])
-    .range([ 0, width ]);
-  svg.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x));
+  {#var x = d3.scaleLinear()#}
+  {#  .domain([0, 1])#}
+  {#  .range([ 0, width ]);#}
+  {#svg.append("g")#}
+  {#  .attr("transform", "translate(0," + height + ")")#}
+  {#  .call(d3.axisBottom(x));#}
 
     // text label for the x axis
-  svg.append("text")
-      .attr("transform",
-            "translate(" + (width/2) + " ," +
-                           (height + margin.top + 20) + ")")
-      .style("text-anchor", "middle")
-      .text("Model Score");
+  {#svg.append("text")#}
+  {#    .attr("transform",#}
+  {#          "translate(" + (width/2) + " ," +#}
+  {#                         (height + margin.top + 20) + ")")#}
+  {#    .style("text-anchor", "middle")#}
+  {#    .text("Model Score");#}
 
   // Add Y axis
   var y = d3.scaleLinear()
@@ -70,17 +71,69 @@ var svg = d3.select("#container")
       .style("text-anchor", "middle")
       .text("User Score");
 
+  // colors
+    var colors = d3.scaleQuantize()
+        .domain([0,1])
+        .range(["red", "green"]);
+
   // Add dots
   svg.append('g')
     .selectAll("dot")
     .data(final_data)
     .enter()
+      .append("a")
+      .attr("xlink:href", function(d){ return "/model/"+ {{ ml_model.id }} + "/label/" + d.pk })
     .append("circle")
-      .attr("cx", function (d) { return x(d.model_score); } )
-      .attr("cy", function (d) { return y(d.user_score); } )
-      .attr("r", 5)
-      .style("fill", "#69b3a2")
+        .attr("cx", function (d) { return count = count + 10; } )
+        .attr("cy", function (d) { return y(d.user_score); } )
+        .attr("r", 5)
+        .style("fill", d=>colors(d.model_score))
 
+
+
+
+
+    // draw mid point line
+    var line = svg.append("line")          // attach a line
+        .style("stroke", "black")
+        .style("stroke-width", 2) // colour the line
+        .attr("x1", 0.0)     // x position of the first end of the line
+        .attr("y1", 181)      // y position of the first end of the line
+        .attr("x2", 400)     // x position of the second end of the line
+        .attr("y2", 181)
+    .style("fill", "#69b3a2")
+
+var nodes = svg.selectAll("dot")
+var simulation = d3.forceSimulation(nodes)
+  .force('charge', d3.forceManyBody().strength(5))
+  .force('center', d3.forceCenter(width / 2, height / 2))
+  .force('collision', d3.forceCollide().radius(function(d) {
+    return d.radius
+  }))
+  .on('tick', ticked);
+
+
+// Resolve collisions between nodes.
+function ticked() {
+  var u = d3.select('svg')
+    .selectAll('dot')
+    .data(nodes)
+
+  u.enter()
+    .append('circle')
+    .attr('r', function(d) {
+      return d.radius
+    })
+    .merge(u)
+    .attr('cx', function(d) {
+      return d.x
+    })
+    .attr('cy', function(d) {
+      return d.y
+    })
+
+  u.exit().remove()
+}
 
 </script>
 {%  endblock %}

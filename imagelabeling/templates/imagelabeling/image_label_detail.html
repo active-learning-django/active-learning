@@ -6,11 +6,24 @@
         <h1>Model: {{ ml_model.title }}</h1>
         <h2>Image: {{ image.title }}</h2>
         <div class="row">
-            <img src="{{ image.image_file.url}}" class="img-fluid" alt="{{ image.title }}">
+            <div class="col-md-8">
+                <img src="{{ image.image_file.url}}" class="img-fluid" alt="{{ image.title }}">
+            </div>
         </div>
-            <p>Confidence: {{ image.user_score }}</p>
-            <p>Abnormal Votes: {{ image.abnormal_votes }}</p>
-            <p>Normal Votes: {{ image.normal_votes }}</p>
+
+        <form action="{% url 'vote' image.id %}" method="post">
+            {% csrf_token %}
+            <input type="radio" name="choice" id="zero_votes" value=0>
+            <label for="zero_votes">Normal</label><br>
+            <input type="radio" name="choice" id="one_votes" value=1>
+            <label for="one_votes">Abnormal</label><br>
+            <input type="radio" name="choice" id="unknown_votes" value="Unknown">
+            <label for="unknown_votes">Unknown</label><br>
+            <input type="submit" value="Vote">
+        </form>
+            <p>User Score Average: {{ image.user_score }}</p>
+            <p>Abnormal Votes: {{ image.one_votes }}</p>
+            <p>Normal Votes: {{ image.zero_votes }}</p>
             <p>Unknown Votes: {{ image.unknown_votes }}</p>
 {% endblock %}
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
