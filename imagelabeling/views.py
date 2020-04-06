@@ -25,6 +25,7 @@ import pandas as pd
 import openpyxl
 import os
 from .ridgemodel import Model
+from .ridgemodel import Calculation
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 import statistics
@@ -42,48 +43,92 @@ class HomePageView(ListView):
 
 
 def IterationInputPage(request):
-    model = NumOfIteration
-    form_class = NumOfIterationForm
-    template_name = 'imagelabeling/temp.html'
-    return render(request, 'imagelabeling/temp.html',{'form': form_class})
+
+    # model = NumOfIteration
+    # form_class = NumOfIterationForm
+    # template_name = 'imagelabeling/temp.html'
+    # return render(request, 'imagelabeling/temp.html',{'form': form_class})
+    if request.method == 'GET':
+        model = NumOfIteration
+        form_class = NumOfIterationForm
+        template_name = 'imagelabeling/temp.html'
+        return render(request, 'imagelabeling/temp.html', {'form': form_class})
+
+    elif request.method == "POST":
+        form_class = NumOfIterationForm
+        input = NumOfIterationForm(request.POST)
+        if input.is_valid():
+            text = input.cleaned_data['Iteration']
+            # print(type(text))
+
+            # path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
+            path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
+            firstdf = pd.read_csv(path)
+            firstdf.drop(['Unnamed: 0'], axis=1, inplace=True)
+            firstdf['dif'] = 0
+            firstdf['probability'] = 0
 
 
-def DisplayROC(request, ml_model_id):
-    try:
-        ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
-    except MachineLearningModel.DoesNotExist:
-        raise Http404("Model does not exist")
-    # need to figure out path
-    path = 'final_data_test_' + ml_model.title + '.csv'
-    data = Model.ridge_regression(path)
-    #
-    # newdf = Model.concateData(data)
-    #
-    # return HttpResponse(len(newdf))
+            tempdf = firstdf
+            for i in range(1, text+1):
+                df = Calculation.ridge_regression(tempdf)
+                tempdf = Calculation.concateData(df)
+            #
+            #show ROC curve
+            prediction = tempdf['probability']
+            actual = tempdf['label'].values.reshape(-1, 1)
 
-    prediction = data['probability']
-    actual = data['label'].values.reshape(-1, 1)
-    false_positive_rate, true_positive_rate, thresholds = roc_curve(actual, prediction)
-    roc_auc = auc(false_positive_rate, true_positive_rate)
-    plt.title('ROC curve for Ridge Regression Model')
-    plt.plot(false_positive_rate, true_positive_rate, 'b',
-             label='AUC = %0.2f' % roc_auc)
-    plt.legend(loc='lower right')
-    plt.plot([0, 1], [0, 1], 'r--')
-    plt.xlim([-0.1, 1.2])
-    plt.ylim([-0.1, 1.2])
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
+            false_positive_rate, true_positive_rate, thresholds = roc_curve(actual, prediction)
+            roc_auc = auc(false_positive_rate, true_positive_rate)
+            plt.title('ROC curve for Ridge Regression Model')
+            plt.subplot(2,1,1)
+            plt.plot(false_positive_rate, true_positive_rate, 'b',
+                     label='AUC = %0.2f' % roc_auc)
+            plt.legend(loc='lower right')
+            plt.plot([0, 1], [0, 1], 'r--')
+            plt.xlim([-0.1, 1.2])
+            plt.ylim([-0.1, 1.2])
+            plt.ylabel('True Positive Rate')
+            plt.xlabel('False Positive Rate')
+            fig = plt.gcf()
 
-    fig = plt.gcf()
+            buf1 = io.BytesIO()
+            fig.savefig(buf1, format='png')
+            buf1.seek(0)
+            string1 = base64.b64encode(buf1.read())
+            uri1 = urllib.parse.quote(string1)
 
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png')
-    buf.seek(0)
-    string = base64.b64encode(buf.read())
-    uri = urllib.parse.quote(string)
+            # show bar chart
+            plt.subplot(2,1,2)
+            bar_y = tempdf['probability']
 
-    return render(request, 'imagelabeling/graph.html', {'data': uri})
+            bar_x = len(tempdf)
+            plt.figure()
+
+            #color set
+            colors_set = []
+            for value in bar_y:
+                if 0.2 <= value <= 0.45:
+                    colors_set.append("red")
+                else:
+                    colors_set.append('green')
+
+            plt.barh(range(bar_x),bar_y,color = colors_set)
+            # plt.barh(range(bar_x),bar_y)
+
+            fig = plt.gcf()
+
+            buf = io.BytesIO()
+            fig.savefig(buf, format='png')
+            buf.seek(0)
+            string = base64.b64encode(buf.read())
+            uri = urllib.parse.quote(string)
+
+            args = {'data': uri, 'image':uri1}
+
+            # return render(request, 'imagelabeling/graph.html', {'data': uri})
+            return render(request, 'imagelabeling/graph.html', args)
+
 
 def CreatePostView(request):
     if request.method == 'POST':
@@ -214,6 +259,7 @@ def trainModel(request, ml_model_id):
     # change from the multithreaded solution since that might be breaking
     t.train_model(ml_model.title)
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
+
 
 def updateImagesWithModelPrediction(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)

@@ -43,7 +43,7 @@ class Classifier(models.Model):
 class NumOfIteration(models.Model):
 
     INTEGER_CHOICES = [tuple([x, x]) for x in range(1, 10)]
-    Iteration = models.CharField(max_length=100, choices=INTEGER_CHOICES)
+    Iteration = models.IntegerField(max_length=100, choices=INTEGER_CHOICES)
 
     def __str__(self):
         return self.Iteration
