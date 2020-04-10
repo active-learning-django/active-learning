@@ -16,6 +16,8 @@ class Calculation:
 
         # return data
     # self == data frame
+
+
     def ridge_regression(self):
         # p = '../final_data_test.csv'
         # input = p
@@ -38,6 +40,7 @@ class Calculation:
         # run model with all alpha
         ridgecv = RidgeCV(alphas=alpha_list, scoring='neg_mean_squared_error', normalize=True)
         ridgecv.fit(train_X, train_y)
+
 
         # the best shrinkage
         best_alpha = ridgecv.alpha_
@@ -91,7 +94,8 @@ class Calculation:
         plt.ylim([-0.1, 1.2])
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
-        plt.savefig('../media/ROC_Curve/ROC.png')
+        # plt.savefig('../media/ROC_Curve/ROC.png')
+        return plt
 
     def concateData(self):
 
@@ -101,31 +105,57 @@ class Calculation:
         # find find the lowest difference
         low_diff = self[self['dif'] < 0.3]
 
+        # if (len(low_diff) < 100):
+
+
         newdf = pd.concat([self,low_diff],axis = 0)
 
         return newdf
 
+
+
+    def outputCSV(self):
+        df = pd.DataFrame(self)
+        df.to_csv('output.csv', index=False)
+
+        return df
+
+    def outputJSON(self):
+        df = pd.DataFrame(self)
+        df.to_json('output.json', orient='records')
+
+        return df
+
+
 #
 # if __name__ == '__main__':
-    # unittest.main()
+#     # unittest.main()
+#
+#     # path = '../final_data_test.csv'
+#     path = '/Users/maggie/Desktop/active-learning/final_data_test_Test-951.csv'
+#     data = pd.read_csv(path)
+#     data.drop(['Unnamed: 0'], axis=1, inplace=True)
+#     data['dif'] = 0
+#     data['probability'] = 0
+#     # # print(data)
+#     #
+#
+#
+#
+#     # #read file & run ridge regression
+#     result = Calculation.ridge_regression(data)
+#     # # print(result)
+#     finaldf = result
+#     # #
+#     for i in range(2,4):
+#         tempdf = Calculation.ridge_regression(result)
+#         finaldf = Calculation.concateData(tempdf)
+#     prob = Calculation.outputCSV(finaldf)
+#     print(prob)
     #
-    # path = '../final_data_test.csv'
-    # # # path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
-    # data = pd.read_csv(path)
-    # data.drop(['Unnamed: 0'], axis=1, inplace=True)
-    # data['dif'] = 0
-    # data['probability'] = 0
-    # # print(data)
-    #
-    # #read file & run ridge regression
-    # result = Calculation.ridge_regression(data)
-    # # print(result)
-    # finaldf = result
-    # #
-    # for i in range(2,4):
-    #     tempdf = Calculation.ridge_regression(result)
-    #     finaldf = Calculation.concateData(tempdf)
-    #
+    # re2 = Calculation.ridge_regression(finaldf)
+    # prob2 = Calculation.outputCSV(re2)
+    # print(prob2)
     #     print(len(finaldf))
     # #create ROC curve
     # Calculation.ROC(result)

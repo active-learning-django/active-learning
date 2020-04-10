@@ -16,24 +16,22 @@ from django.core import serializers
 from zipfile import *
 
 # get the forms
-from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, NumOfIterationForm
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, NumOfIterationForm, BooleanForm
 from .models import ImageLabel, MachineLearningModel, NumOfIteration
 from django.shortcuts import get_object_or_404, render
 
 # ml stuff
 import pandas as pd
-import openpyxl
-import os
+
 
 from .ridgemodel import Calculation
-from sklearn.metrics import roc_curve, auc
-import matplotlib.pyplot as plt
-import statistics
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib import pylab
+
 from pylab import *
 import io, urllib, base64
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import csv
+from django.http import JsonResponse
+from django.template import loader
+
 
 
 
@@ -42,92 +40,126 @@ class HomePageView(ListView):
     template_name = 'imagelabeling/home.html'
 
 
-def IterationInputPage(request):
+def IterationInputPage(request,ml_model_id):
+    if request.method == "GET":
+        path = '/Users/maggie/Desktop/active-learning/final_data_Test_Test-951.csv'
+        firstdf = pd.read_csv(path)
+        firstdf.drop(['Unnamed: 0'], axis=1, inplace=True)
+        firstdf['dif'] = 0
+        firstdf['probability'] = 0
+        firstdf = firstdf.dropna()
 
-    # model = NumOfIteration
-    # form_class = NumOfIterationForm
-    # template_name = 'imagelabeling/temp.html'
-    # return render(request, 'imagelabeling/temp.html',{'form': form_class})
-    if request.method == 'GET':
-        model = NumOfIteration
-        form_class = NumOfIterationForm
-        template_name = 'imagelabeling/temp.html'
-        return render(request, 'imagelabeling/temp.html', {'form': form_class})
+        tempdf = firstdf
 
-    elif request.method == "POST":
-        form_class = NumOfIterationForm
-        input = NumOfIterationForm(request.POST)
-        if input.is_valid():
-            text = input.cleaned_data['Iteration']
+        df = Calculation.ridge_regression(tempdf)
+        final = Calculation.concateData(df)
+
+        Calculation.outputCSV(final)
+        Calculation.outputJSON(final)
+
+        plt = Calculation.ROC(final)
+        fig = plt.gcf()
+
+        buf1 = io.BytesIO()
+        fig.savefig(buf1, format='png')
+        buf1.seek(0)
+        string1 = base64.b64encode(buf1.read())
+        uri1 = urllib.parse.quote(string1)
+
+
+        form_class = BooleanForm
+
+        args = {'image': uri1, 'form': form_class}
+
+        return render(request, 'imagelabeling/graph.html', args)
+
+
+
+
+# def IterationInputPage(request,ml_model_id):
+#
+#     if request.method == 'GET':
+#         form_class = BooleanForm
+#         template_name = 'imagelabeling/temp.html'
+#
+#         return render(request, 'imagelabeling/temp.html', {'form': form_class})
+
+    # elif request.method == "POST":
+        # form_class = NumOfIterationForm
+        # input = NumOfIterationForm(request.POST)
+        # form_class = BooleanForm
+        # input = BooleanForm(request.POST)
+        # if input.is_valid():
+            # text = input.cleaned_data['Iteration']
             # print(type(text))
-
+            # if input == True:
             # path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
-            path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
-            firstdf = pd.read_csv(path)
-            firstdf.drop(['Unnamed: 0'], axis=1, inplace=True)
-            firstdf['dif'] = 0
-            firstdf['probability'] = 0
-
-
-            tempdf = firstdf
-            for i in range(1, text+1):
-                df = Calculation.ridge_regression(tempdf)
-                tempdf = Calculation.concateData(df)
+            #     path = '/Users/maggie/Desktop/active-learning/final_data_test_Test-951.csv'
+            #     firstdf = pd.read_csv(path)
+            #     firstdf.drop(['Unnamed: 0'], axis=1, inplace=True)
+            #     firstdf['dif'] = 0
+            #     firstdf['probability'] = 0
             #
-            #show ROC curve
-            prediction = tempdf['probability']
-            actual = tempdf['label'].values.reshape(-1, 1)
-
-            false_positive_rate, true_positive_rate, thresholds = roc_curve(actual, prediction)
-            roc_auc = auc(false_positive_rate, true_positive_rate)
-            plt.title('ROC curve for Ridge Regression Model')
-            plt.subplot(2,1,1)
-            plt.plot(false_positive_rate, true_positive_rate, 'b',
-                     label='AUC = %0.2f' % roc_auc)
-            plt.legend(loc='lower right')
-            plt.plot([0, 1], [0, 1], 'r--')
-            plt.xlim([-0.1, 1.2])
-            plt.ylim([-0.1, 1.2])
-            plt.ylabel('True Positive Rate')
-            plt.xlabel('False Positive Rate')
-            fig = plt.gcf()
-
-            buf1 = io.BytesIO()
-            fig.savefig(buf1, format='png')
-            buf1.seek(0)
-            string1 = base64.b64encode(buf1.read())
-            uri1 = urllib.parse.quote(string1)
+            #
+            #     tempdf = firstdf
+            #     # for i in range(1, text+1):
+            #     df = Calculation.ridge_regression(tempdf)
+            #     final = Calculation.concateData(df)
+            #     #
+            #     #show ROC curve
+            #     prediction = final['probability']
+            #     actual = final['label'].values.reshape(-1, 1)
+            #
+            #     false_positive_rate, true_positive_rate, thresholds = roc_curve(actual, prediction)
+            #     roc_auc = auc(false_positive_rate, true_positive_rate)
+            #     plt.title('ROC curve for Ridge Regression Model')
+            #     plt.subplot(2,1,1)
+            #     plt.plot(false_positive_rate, true_positive_rate, 'b',
+            #              label='AUC = %0.2f' % roc_auc)
+            #     plt.legend(loc='lower right')
+            #     plt.plot([0, 1], [0, 1], 'r--')
+            #     plt.xlim([-0.1, 1.2])
+            #     plt.ylim([-0.1, 1.2])
+            #     plt.ylabel('True Positive Rate')
+            #     plt.xlabel('False Positive Rate')
+            #     fig = plt.gcf()
+            #
+            #     buf1 = io.BytesIO()
+            #     fig.savefig(buf1, format='png')
+            #     buf1.seek(0)
+            #     string1 = base64.b64encode(buf1.read())
+            #     uri1 = urllib.parse.quote(string1)
 
             # show bar chart
-            plt.subplot(2,1,2)
-            bar_y = tempdf['probability']
+            # plt.subplot(2,1,2)
+            # bar_y = tempdf['probability']
+            #
+            # bar_x = len(tempdf)
+            # plt.figure()
 
-            bar_x = len(tempdf)
-            plt.figure()
+            # #color set
+            # colors_set = []
+            # for value in bar_y:
+            #     if 0.2 <= value <= 0.45:
+            #         colors_set.append("red")
+            #     else:
+            #         colors_set.append('green')
+            #
+            # plt.barh(range(bar_x),bar_y,color = colors_set)
+            # # plt.barh(range(bar_x),bar_y)
+            #
+            # fig = plt.gcf()
+            #
+            # buf = io.BytesIO()
+            # fig.savefig(buf, format='png')
+            # buf.seek(0)
+            # string = base64.b64encode(buf.read())
+            # uri = urllib.parse.quote(string)
 
-            #color set
-            colors_set = []
-            for value in bar_y:
-                if 0.2 <= value <= 0.45:
-                    colors_set.append("red")
-                else:
-                    colors_set.append('green')
-
-            plt.barh(range(bar_x),bar_y,color = colors_set)
-            # plt.barh(range(bar_x),bar_y)
-
-            fig = plt.gcf()
-
-            buf = io.BytesIO()
-            fig.savefig(buf, format='png')
-            buf.seek(0)
-            string = base64.b64encode(buf.read())
-            uri = urllib.parse.quote(string)
-
-            args = {'data': uri, 'image':uri1}
-
+            # args = {'data': uri, 'image':uri1}
+            #     args = {'image': uri1}
             # return render(request, 'imagelabeling/graph.html', {'data': uri})
-            return render(request, 'imagelabeling/graph.html', args)
+            #     return render(request, 'imagelabeling/graph.html', args)
 
 
 def CreatePostView(request):
@@ -280,14 +312,34 @@ def updateImagesWithModelPrediction(request, ml_model_id):
 # then we want to compare how the users labeled the model,
 # to how the model predicts these labels
 # so we can double check them, pretty much
+# def visualization(request, ml_model_id):
+#     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+#     images = ml_model.imagelabel_set.all()
+#     images_json = serializers.serialize('json', images)
+#     # so from each image, we need the adjusted prediction number by the model
+#     # then the number given by the labelers
+#     html = "<html><body>Visualization will go here!</body></html>"
+#     return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
+
 def visualization(request, ml_model_id):
+    html = "<html><body>Visualization will go here!</body></html>"
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     images = ml_model.imagelabel_set.all()
     images_json = serializers.serialize('json', images)
-    # so from each image, we need the adjusted prediction number by the model
-    # then the number given by the labelers
-    html = "<html><body>Visualization will go here!</body></html>"
-    return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
+
+    df = pd.read_csv("/Users/maggie/Desktop/active-learning/output.csv")
+    df = df[df.columns[-4:]]
+    df = df.to_json(orient="index")
+    # df1 = df['probability']
+    # df = pd.read_json("/Users/maggie/Desktop/active-learning/output.json")
+    # df_json = df.to_json(df)
+    # template = loader.get_template('imagelabeling/visual2.html')
+
+    # return HttpResponse(template.render())
+    return render(request, 'imagelabeling/visual2.html', {"image": df ,'images': images_json, 'ml_model': ml_model})
+
+
+
 
 
 def testSkikit(request, ml_model_id):
