@@ -31,3 +31,8 @@ class NumOfIterationForm(forms.ModelForm):
         fields = ['Iteration']
 
 
+
+class BooleanForm(forms.Form):
+    field = forms.TypedChoiceField(coerce=lambda x: x =='True',
+                                   choices=((False, 'No'), (True, 'Yes')))
+

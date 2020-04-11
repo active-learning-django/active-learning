@@ -1,0 +1,173 @@
+{%  extends "imagelabeling/base.html" %}
+{% block content %}
+<h1 class="h2">Model: {{ ml_model.title }}</h1>
+<div id="container" class="svg-container"></div>
+
+<script>
+let count = 50;
+/* load in images information, use d3 */
+
+    data_from_django = {{ images|safe }};
+    /* widget.init(data_from_django); */
+
+    data_from_probability = {{ image|safe }};
+    /* widget.init(data_from_probability); */
+    console.log(data_from_probability)
+
+//-----------------------DATA PREPARATION------------------------//
+let final_data = [];
+for (let i = 0; i < data_from_django.length; i++) {
+    let d = data_from_django[i];
+    let modified_object = {};
+    modified_object.id = d.pk;
+    modified_object.model_score = d.fields.model_score;
+    modified_object.user_score = d.fields.user_score;
+    modified_object.title= d.fields.title;
+    modified_object.pk = d.pk;
+    final_data.push(modified_object);
+}
+console.log(final_data);
+
+let prob_data = [];
+for (let i = 0; i < Object.keys(data_from_probability).length; i++) {
+    <!--console.log(data_from_probability[i])-->
+
+    let d = data_from_probability[i];
+    let modified_object = {};
+    modified_object.image = d.image;
+    modified_object.label = d.label;
+    modified_object.dif = d.dif;
+    modified_object.probability= d.probability;
+    prob_data.push(modified_object);
+}
+console.log(prob_data);
+
+//------------------------SVG PREPARATION------------------------//
+// set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 30, left: 60},
+    width = 460 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#container")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+  // Add X axis
+  {#var x = d3.scaleLinear()#}
+  {#  .domain([0, 1])#}
+  {#  .range([ 0, width ]);#}
+  {#svg.append("g")#}
+  {#  .attr("transform", "translate(0," + height + ")")#}
+  {#  .call(d3.axisBottom(x));#}
+
+    // text label for the x axis
+  {#svg.append("text")#}
+  {#    .attr("transform",#}
+  {#          "translate(" + (width/2) + " ," +#}
+  {#                         (height + margin.top + 20) + ")")#}
+  {#    .style("text-anchor", "middle")#}
+  {#    .text("Model Score");#}
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([0, 1])
+    .range([ height, 0]);
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  // text label for the y axis
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Probability of each case");
+
+  // colors
+    var colors = d3.scaleQuantize()
+        .domain([0,1])
+        .range(["red", "green"]);
+
+  // Add dots
+  svg.append('g')
+    .selectAll("dot")
+    .data(prob_data)
+    .enter()
+      .append("a")
+      <!--.attr("xlink:href", function(d){ return "/model/"+ {{ ml_model.id }} + "/label/" + d.pk })-->
+    .append("circle")
+        .attr("cx", function (d) { return count = count + 10; } )
+        .attr("cy", function (d) { return y(d.probability); } )
+        .attr("r", 5)
+        .style("fill", function(d,i){
+            if(0.2 <= d.dif <= 0.65){
+                return "red"
+            }else{
+                return "green"
+            }
+        })
+
+  <!--svg.append('g')-->
+    <!--.selectAll("dot")-->
+    <!--.data(final_data)-->
+    <!--.enter()-->
+      <!--.append("a")-->
+      <!--.attr("xlink:href", function(d){ return "/model/"+ {{ ml_model.id }} + "/label/" + d.pk })-->
+    <!--.append("circle")-->
+        <!--.attr("cx", function (d) { return count = count + 10; } )-->
+        <!--.attr("cy", function (d) { return y(d.user_score); } )-->
+        <!--.attr("r", 5)-->
+        <!--.style("fill", d=>colors(d.model_score))-->
+
+
+
+    // draw mid point line
+    var line = svg.append("line")          // attach a line
+        .style("stroke", "black")
+        .style("stroke-width", 2) // colour the line
+        .attr("x1", 0.0)     // x position of the first end of the line
+        .attr("y1", 181)      // y position of the first end of the line
+        .attr("x2", 400)     // x position of the second end of the line
+        .attr("y2", 181)
+    .style("fill", "#69b3a2")
+
+var nodes = svg.selectAll("dot")
+var simulation = d3.forceSimulation(nodes)
+  .force('charge', d3.forceManyBody().strength(5))
+  .force('center', d3.forceCenter(width / 2, height / 2))
+  .force('collision', d3.forceCollide().radius(function(d) {
+    return d.radius
+  }))
+  .on('tick', ticked);
+
+
+// Resolve collisions between nodes.
+function ticked() {
+  var u = d3.select('svg')
+    .selectAll('dot')
+    .data(nodes)
+
+  u.enter()
+    .append('circle')
+    .attr('r', function(d) {
+      return d.radius
+    })
+    .merge(u)
+    .attr('cx', function(d) {
+      return d.x
+    })
+    .attr('cy', function(d) {
+      return d.y
+    })
+
+  u.exit().remove()
+}
+
+</script>
+{%  endblock %}
