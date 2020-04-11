@@ -8,13 +8,13 @@ from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 import unittest
 class Calculation:
-    # def readCSV(self):
-    #     data = pd.read_csv(self)
-    #     data.drop(['Unnamed: 0'], axis=1, inplace=True)
-    #     data['dif'] = 0
-    #     data['probability'] = 0
+    def readCSV(self):
+        data = pd.read_csv(self)
+        # data.drop(['Unnamed: 0'], axis=1, inplace=True)
+        data['dif'] = 0
+        data['probability'] = 0
 
-        # return data
+        return data
     # self == data frame
 
 
@@ -116,7 +116,7 @@ class Calculation:
 
     def outputCSV(self):
         df = pd.DataFrame(self)
-        df.to_csv('output.csv', index=False)
+        df.to_csv('final_data_test.csv', index=False)
 
         return df
 

@@ -28,9 +28,6 @@ from .ridgemodel import Calculation
 
 from pylab import *
 import io, urllib, base64
-import csv
-from django.http import JsonResponse
-from django.template import loader
 
 
 
@@ -40,38 +37,48 @@ class HomePageView(ListView):
     template_name = 'imagelabeling/home.html'
 
 
+
 def IterationInputPage(request,ml_model_id):
+    path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
+    firstdf = Calculation.readCSV(path)
+
+    # Calculation.outputCSV(firstdf)
+    # Calculation.outputJSON(firstdf)
+
     if request.method == "GET":
-        path = '/Users/maggie/Desktop/active-learning/final_data_Test_Test-951.csv'
-        firstdf = pd.read_csv(path)
-        firstdf.drop(['Unnamed: 0'], axis=1, inplace=True)
-        firstdf['dif'] = 0
-        firstdf['probability'] = 0
-        firstdf = firstdf.dropna()
+            # path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
+            # firstdf = pd.read_csv(path)
+            # firstdf.drop(['Unnamed: 0'], axis=1, inplace=True)
+            # firstdf['dif'] = 0
+            # firstdf['probability'] = 0
+            # firstdf = firstdf.dropna()
 
-        tempdf = firstdf
+            rid_result = Calculation.ridge_regression(firstdf)
+            concatedDF = Calculation.concateData(rid_result)
+            final = Calculation.ridge_regression(concatedDF)
 
-        df = Calculation.ridge_regression(tempdf)
-        final = Calculation.concateData(df)
+            print("       ")
+            print(len(final['probability']))
+            print("          ")
 
-        Calculation.outputCSV(final)
-        Calculation.outputJSON(final)
+            Calculation.outputCSV(final)
+            Calculation.outputJSON(final)
 
-        plt = Calculation.ROC(final)
-        fig = plt.gcf()
+            plt = Calculation.ROC(final)
+            fig = plt.gcf()
 
-        buf1 = io.BytesIO()
-        fig.savefig(buf1, format='png')
-        buf1.seek(0)
-        string1 = base64.b64encode(buf1.read())
-        uri1 = urllib.parse.quote(string1)
+            buf1 = io.BytesIO()
+            fig.savefig(buf1, format='png')
+            buf1.seek(0)
+            string1 = base64.b64encode(buf1.read())
+            uri1 = urllib.parse.quote(string1)
 
+            form_class = BooleanForm
 
-        form_class = BooleanForm
+            args = {'image': uri1, 'form': form_class}
 
-        args = {'image': uri1, 'form': form_class}
+            return render(request, 'imagelabeling/graph.html', args)
 
-        return render(request, 'imagelabeling/graph.html', args)
 
 
 

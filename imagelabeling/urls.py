@@ -17,6 +17,7 @@ urlpatterns = [
     path('label/<int:image_id>/vote', views.vote, name='vote'),
     path('model/<int:ml_model_id>/run-predictions/', views.updateImagesWithModelPrediction, name='update_images_with_model_prediction'),
     path('model/<int:ml_model_id>/visualization/', views.visualization, name='visualization'),
-    path('model/<int:ml_model_id>/prob/', views.IterationInputPage, name = 'show roc curve')
+    path('model/<int:ml_model_id>/prob/', views.IterationInputPage, name = 'show roc curve'),
+
 
 ]
