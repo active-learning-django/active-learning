@@ -28,6 +28,7 @@ from .ridgemodel import Calculation
 
 from pylab import *
 import io, urllib, base64
+from sklearn.metrics import roc_curve, auc
 
 
 
@@ -39,19 +40,11 @@ class HomePageView(ListView):
 
 
 def IterationInputPage(request,ml_model_id):
-    path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
+    path = '/Users/maggie/Desktop/active-learning/large_data.csv'
     firstdf = Calculation.readCSV(path)
-
-    # Calculation.outputCSV(firstdf)
-    # Calculation.outputJSON(firstdf)
+    count = 0
 
     if request.method == "GET":
-            # path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
-            # firstdf = pd.read_csv(path)
-            # firstdf.drop(['Unnamed: 0'], axis=1, inplace=True)
-            # firstdf['dif'] = 0
-            # firstdf['probability'] = 0
-            # firstdf = firstdf.dropna()
 
             rid_result = Calculation.ridge_regression(firstdf)
             concatedDF = Calculation.concateData(rid_result)
@@ -64,6 +57,7 @@ def IterationInputPage(request,ml_model_id):
             Calculation.outputCSV(final)
             Calculation.outputJSON(final)
 
+
             plt = Calculation.ROC(final)
             fig = plt.gcf()
 
@@ -74,13 +68,9 @@ def IterationInputPage(request,ml_model_id):
             uri1 = urllib.parse.quote(string1)
 
             form_class = BooleanForm
-
             args = {'image': uri1, 'form': form_class}
 
             return render(request, 'imagelabeling/graph.html', args)
-
-
-
 
 
 # def IterationInputPage(request,ml_model_id):

@@ -6,27 +6,20 @@ from sklearn.linear_model import RidgeCV
 
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
-import unittest
+from sklearn.externals import joblib
 class Calculation:
     def readCSV(self):
         data = pd.read_csv(self)
         # data.drop(['Unnamed: 0'], axis=1, inplace=True)
         data['dif'] = 0
         data['probability'] = 0
+        data.dropna(inplace=True)
+        # data.replace('',np.nan, regex=True)
 
         return data
-    # self == data frame
-
 
     def ridge_regression(self):
-        # p = '../final_data_test.csv'
-        # input = p
-        # data = pd.read_csv(self)
-        # data.drop(['Unnamed: 0'], axis=1, inplace=True)
-        # data['dif'] = 0
-        # data['probability'] = 0
-        # data = self
-        # seperate x,y
+
         X = self.drop(['label', "image", 'dif', 'probability'], axis=1)
         y = self['label'].values.reshape(-1, 1)
 
@@ -35,7 +28,8 @@ class Calculation:
         # stratify = y is used when data is not enough or biased
 
         # find best alpha
-        alpha_list = 10 ** np.linspace(10, -2, 100) * 0.5
+        alpha_list = 10 ** np.linspace(2, -5, 22) * 0.5
+        print(alpha_list)
 
         # run model with all alpha
         ridgecv = RidgeCV(alphas=alpha_list, scoring='neg_mean_squared_error', normalize=True)
@@ -51,8 +45,8 @@ class Calculation:
         ridge_refit.predict(test_X)
 
         # #save model to Joblib Module
-        # joblib_file = "joblib_model.pkl"
-        # joblib.dump(ridge_refit, joblib_file)
+        joblib_file = "joblib_model.pkl"
+        joblib.dump(ridge_refit, joblib_file)
         #
         # # Load from file
         # joblib_model = joblib.load(joblib_file)
@@ -104,14 +98,11 @@ class Calculation:
 
         # find find the lowest difference
         low_diff = self[self['dif'] < 0.3]
-
-        # if (len(low_diff) < 100):
-
+        # if (len(low_diff) < 2):
 
         newdf = pd.concat([self,low_diff],axis = 0)
 
         return newdf
-
 
 
     def outputCSV(self):
@@ -127,23 +118,30 @@ class Calculation:
         return df
 
 
-#
-# if __name__ == '__main__':
-#     # unittest.main()
-#
-#     # path = '../final_data_test.csv'
-#     path = '/Users/maggie/Desktop/active-learning/final_data_test_Test-951.csv'
-#     data = pd.read_csv(path)
-#     data.drop(['Unnamed: 0'], axis=1, inplace=True)
-#     data['dif'] = 0
-#     data['probability'] = 0
-#     # # print(data)
+
+if __name__ == '__main__':
+    # unittest.main()
+
+    # path = '../final_data_test.csv'
+    path = '/Users/maggie/Desktop/active-learning/final_data_test_Test-951.csv'
+    data = pd.read_csv(path)
+    data.drop(['Unnamed: 0'], axis=1, inplace=True)
+    data['dif'] = 0
+    data['probability'] = 0
+    # # print(data)
 #     #
 #
 #
 #
 #     # #read file & run ridge regression
-#     result = Calculation.ridge_regression(data)
+    result = Calculation.ridge_regression(data)
+    final = Calculation.concateData(result)
+    # print(type(final))
+
+    result2 = Calculation.ridge_regression(final)
+    final2 = Calculation.concateData(result2)
+    print(final2)
+    print(final2.loc[1:3,])
 #     # # print(result)
 #     finaldf = result
 #     # #
