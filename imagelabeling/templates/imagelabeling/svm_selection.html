@@ -1,0 +1,17 @@
+
+{%  extends "imagelabeling/base.html" %}
+
+{% block content %}
+    <h1 class="h2">Tunning the parameters for SVM</h1>
+   <form action="" method="post">
+        {% csrf_token %}
+        {{ form }}
+        {{ form2 }}
+        <input type="submit" value="Submit">
+    </form>
+    <!--<form action="" method="post">-->
+        <!--{% csrf_token %}-->
+        <!--{{ form2 }}-->
+        <!--<input type="submit" value="Submit">-->
+    <!--</form>-->
+{% endblock %}

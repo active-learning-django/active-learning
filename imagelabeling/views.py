@@ -16,8 +16,8 @@ from django.core import serializers
 from zipfile import *
 
 # get the forms
-from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, NumOfIterationForm, BooleanForm
-from .models import ImageLabel, MachineLearningModel, NumOfIteration
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel
+from .models import ImageLabel, MachineLearningModel
 from django.shortcuts import get_object_or_404, render
 
 # ml stuff
@@ -28,6 +28,7 @@ from .ridgemodel import Calculation
 
 from pylab import *
 import io, urllib, base64
+from sklearn.metrics import roc_curve, auc
 
 
 
@@ -36,10 +37,24 @@ class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
+def SVMTuning(request,ml_model_id):
+    if request.method == "POST":
+        form = GammaForm(request.POST)
+        form2 = SVMKernel(request.POST)
+
+        if form.is_valid() and form2.is_valid():
+            return HttpResponse("gamma & kernel works")
+    else:
+        form = GammaForm
+        form2 = SVMKernel
+
+    return render(request, 'imagelabeling/svm_selection.html', {'form': form, 'form2':form2})
+
+
+
 
 # call this view right after this model is created
 def CalculateProbability(request, ml_model_id):
-
     # get name of model we're running analysis on
     try:
         ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
@@ -47,18 +62,11 @@ def CalculateProbability(request, ml_model_id):
         raise Http404("Model does not exist")
 
     path = 'final_data_test_' + ml_model.title + '.csv'
+    #path = '/Users/maggie/Desktop/active-learning/large_data.csv'
     firstdf = Calculation.readCSV(path)
-
-    # Calculation.outputCSV(firstdf)
-    # Calculation.outputJSON(firstdf)
+    count = 0
 
     if request.method == "GET":
-            # path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
-            # firstdf = pd.read_csv(path)
-            # firstdf.drop(['Unnamed: 0'], axis=1, inplace=True)
-            # firstdf['dif'] = 0
-            # firstdf['probability'] = 0
-            # firstdf = firstdf.dropna()
 
             rid_result = Calculation.ridge_regression(firstdf)
             concatedDF = Calculation.concateData(rid_result)
@@ -71,6 +79,7 @@ def CalculateProbability(request, ml_model_id):
             Calculation.outputCSV(final, ml_model.title)
             Calculation.outputJSON(final, ml_model.title)
 
+
             plt = Calculation.ROC(final)
             fig = plt.gcf()
 
@@ -81,16 +90,12 @@ def CalculateProbability(request, ml_model_id):
             uri1 = urllib.parse.quote(string1)
 
             form_class = BooleanForm
-
             args = {'image': uri1, 'form': form_class}
 
             return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
 
 def RenderGraph(request):
     return render(request, 'imagelabeling/graph.html')
-
-
-
 
 
 # def IterationInputPage(request,ml_model_id):

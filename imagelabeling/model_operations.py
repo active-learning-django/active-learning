@@ -118,7 +118,7 @@ class ModelOperations:
         df = pd.DataFrame(fc_features, columns=['X' + str(i) for i in range(fc_features.shape[1])], index=None)
         final_data = pd.concat([df, data], axis=1)
         final_data['image'] = final_data['image'].astype(str)
-        final_data.to_csv(export_file_name)
+        final_data.to_csv(export_file_name,index = False)
         # return final_data
         print(final_data.head(10))
         # now need to train the model based on the featurized images

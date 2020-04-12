@@ -36,3 +36,17 @@ class BooleanForm(forms.Form):
     field = forms.TypedChoiceField(coerce=lambda x: x =='True',
                                    choices=((False, 'No'), (True, 'Yes')))
 
+
+class GammaForm(forms.Form):
+    field = forms.CharField(label='Gamma', max_length=100)
+
+
+kerneloption = (
+    (1, "Polynomial"),
+    (2, "RBF"),
+    (3, "Linear"),
+    (4, "Non-Linear"),
+)
+class SVMKernel(forms.Form):
+    field = forms.TypedChoiceField(label="Kernel",coerce=str,
+                                   choices=kerneloption)
