@@ -16,8 +16,8 @@ from django.core import serializers
 from zipfile import *
 
 # get the forms
-from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, NumOfIterationForm, BooleanForm
-from .models import ImageLabel, MachineLearningModel, NumOfIteration
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel
+from .models import ImageLabel, MachineLearningModel
 from django.shortcuts import get_object_or_404, render
 
 # ml stuff
@@ -36,6 +36,21 @@ from sklearn.metrics import roc_curve, auc
 class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
+
+def SVMTuning(request,ml_model_id):
+    if request.method == "POST":
+        form = GammaForm(request.POST)
+        form2 = SVMKernel(request.POST)
+
+        if form.is_valid() and form2.is_valid():
+            return HttpResponse("gamma & kernel works")
+    else:
+        form = GammaForm
+        form2 = SVMKernel
+
+    return render(request, 'imagelabeling/svm_selection.html', {'form': form, 'form2':form2})
+
+
 
 
 
