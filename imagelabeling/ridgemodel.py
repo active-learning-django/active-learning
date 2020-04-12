@@ -112,17 +112,15 @@ class Calculation:
 
         return newdf
 
-
-
-    def outputCSV(self):
+    def outputCSV(self, model_name):
         df = pd.DataFrame(self)
-        df.to_csv('final_data_test.csv', index=False)
+        df.to_csv('final_data_test_' + model_name + '.csv', index=False)
 
         return df
 
-    def outputJSON(self):
+    def outputJSON(self, model_name):
         df = pd.DataFrame(self)
-        df.to_json('output.json', orient='records')
+        df.to_json('output_' + model_name + '.json', orient='records')
 
         return df
 

@@ -37,9 +37,16 @@ class HomePageView(ListView):
     template_name = 'imagelabeling/home.html'
 
 
+# call this view right after this model is created
+def CalculateProbability(request, ml_model_id):
 
-def IterationInputPage(request,ml_model_id):
-    path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
+    # get name of model we're running analysis on
+    try:
+        ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
+    except MachineLearningModel.DoesNotExist:
+        raise Http404("Model does not exist")
+
+    path = 'final_data_test_' + ml_model.title + '.csv'
     firstdf = Calculation.readCSV(path)
 
     # Calculation.outputCSV(firstdf)
@@ -61,8 +68,8 @@ def IterationInputPage(request,ml_model_id):
             print(len(final['probability']))
             print("          ")
 
-            Calculation.outputCSV(final)
-            Calculation.outputJSON(final)
+            Calculation.outputCSV(final, ml_model.title)
+            Calculation.outputJSON(final, ml_model.title)
 
             plt = Calculation.ROC(final)
             fig = plt.gcf()
@@ -77,7 +84,10 @@ def IterationInputPage(request,ml_model_id):
 
             args = {'image': uri1, 'form': form_class}
 
-            return render(request, 'imagelabeling/graph.html', args)
+            return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
+
+def RenderGraph(request):
+    return render(request, 'imagelabeling/graph.html')
 
 
 
@@ -297,9 +307,9 @@ def trainModel(request, ml_model_id):
     t = ModelOperations()
     # change from the multithreaded solution since that might be breaking
     t.train_model(ml_model.title)
-    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
+    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/probability')
 
-
+# update image_label object with classification and probability
 def updateImagesWithModelPrediction(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     images = ml_model.imagelabel_set.all()
@@ -307,12 +317,14 @@ def updateImagesWithModelPrediction(request, ml_model_id):
     for image in images:
         title = "media/ml_model_images/" + ml_model.title + "/" + image.title
         entry = df.loc[df['image'] == title]
-        print(entry)
-        # check for broken image labels
-        if len(entry) > 0:
+
+        # check for broken image labels or duplicates, needs to be 1
+        if len(entry) == 1:
             image.model_score = entry["label"]
+            image.model_difference = entry["dif"]
+            image.model_probability = entry["probability"]
             image.save()
-    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/prob')
+    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/visualization')
 
 
 # want to get all the image labels for this model
@@ -329,23 +341,12 @@ def updateImagesWithModelPrediction(request, ml_model_id):
 #     return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
 
 def visualization(request, ml_model_id):
-    html = "<html><body>Visualization will go here!</body></html>"
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     images = ml_model.imagelabel_set.all()
     images_json = serializers.serialize('json', images)
-
-    df = pd.read_csv("/Users/maggie/Desktop/active-learning/output.csv")
-    df = df[df.columns[-4:]]
-    df = df.to_json(orient="index")
-    # df1 = df['probability']
-    # df = pd.read_json("/Users/maggie/Desktop/active-learning/output.json")
-    # df_json = df.to_json(df)
-    # template = loader.get_template('imagelabeling/visual2.html')
-
-    # return HttpResponse(template.render())
-    return render(request, 'imagelabeling/visual2.html', {"image": df ,'images': images_json, 'ml_model': ml_model})
-
-
+    # so from each image, we need the adjusted prediction number by the model
+    # then the number given by the labelers
+    return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
 
 
 

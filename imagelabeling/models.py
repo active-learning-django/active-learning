@@ -27,6 +27,8 @@ class ImageLabel(models.Model):
     user_score = models.FloatField(default=0.5)
     adjusted_user_score = models.FloatField(default=0)
     model_score = models.FloatField(default=0)
+    model_difference = models.FloatField(default=0)
+    model_probability = models.FloatField(default=0)
     one_votes = models.IntegerField(default=0)
     zero_votes = models.IntegerField(default=0)
     unknown_votes = models.IntegerField(default=0)

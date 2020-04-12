@@ -17,6 +17,7 @@ for (let i = 0; i < data_from_django.length; i++) {
     let modified_object = {};
     modified_object.id = d.pk;
     modified_object.model_score = d.fields.model_score;
+    modified_object.model_probability = d.fields.model_probability;
     modified_object.user_score = d.fields.user_score;
     modified_object.title= d.fields.title;
     modified_object.pk = d.pk;
@@ -40,20 +41,20 @@ var svg = d3.select("#container")
           "translate(" + margin.left + "," + margin.top + ")");
 
   // Add X axis
-  {#var x = d3.scaleLinear()#}
-  {#  .domain([0, 1])#}
-  {#  .range([ 0, width ]);#}
-  {#svg.append("g")#}
-  {#  .attr("transform", "translate(0," + height + ")")#}
-  {#  .call(d3.axisBottom(x));#}
+  var x = d3.scaleLinear()
+    .domain([0, 1])
+    .range([ 0, width ]);
+  svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x));
 
     // text label for the x axis
-  {#svg.append("text")#}
-  {#    .attr("transform",#}
-  {#          "translate(" + (width/2) + " ," +#}
-  {#                         (height + margin.top + 20) + ")")#}
-  {#    .style("text-anchor", "middle")#}
-  {#    .text("Model Score");#}
+  svg.append("text")
+      .attr("transform",
+            "translate(" + (width/2) + " ," +
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("Model Score");
 
   // Add Y axis
   var y = d3.scaleLinear()
@@ -84,7 +85,7 @@ var svg = d3.select("#container")
       .append("a")
       .attr("xlink:href", function(d){ return "/model/"+ {{ ml_model.id }} + "/label/" + d.pk })
     .append("circle")
-        .attr("cx", function (d) { return count = count + 10; } )
+        .attr("cx", function (d) { return x(d.model_probability); } )
         .attr("cy", function (d) { return y(d.user_score); } )
         .attr("r", 5)
         .style("fill", d=>colors(d.model_score))
