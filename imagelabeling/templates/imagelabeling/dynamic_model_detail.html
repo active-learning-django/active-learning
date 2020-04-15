@@ -4,8 +4,8 @@
 
 {% block content %}
         <h1>Model: {{ model.name }}</h1>
-        {%  for field in fields %}
-        <h1>Field {{ fields.field1 }}</h1>
+        {%  for key, value in fields.items %}
+        <h1>{{ value }}</h1>
         {% endfor %}
 
 {% endblock %}

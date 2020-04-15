@@ -1,0 +1,50 @@
+{%  extends "imagelabeling/base.html" %}
+
+{% block headingtitle %} Image Label {% endblock %}
+
+{% block content %}
+        <h1>Model: {{ ml_model.title }}</h1>
+        <h2>Image: {{ image.title }}</h2>
+        <div class="row">
+            <div class="col-md-8">
+                <img src="{{ image.image_file.url}}" class="img-fluid" alt="{{ image.title }}">
+            </div>
+        </div>
+
+        <form action="{% url 'vote' image.id %}" method="post">
+            {% csrf_token %}
+            <input type="radio" name="choice" id="zero_votes" value=0>
+            <label for="zero_votes">Zero</label><br>
+            <input type="radio" name="choice" id="one_votes" value=1>
+            <label for="one_votes">One</label><br>
+
+            <input type="radio" name="choice" id="two_votes" value=2>
+            <label for="zero_votes">Two</label><br>
+            <input type="radio" name="choice" id="three_votes" value=3>
+            <label for="one_votes">Three</label><br>
+            <input type="radio" name="choice" id="four_votes" value=4>
+            <label for="four_votes">Four</label><br>
+            <input type="submit" value="Vote">
+
+            <input type="radio" name="choice" id="five_votes" value=5>
+            <label for="five_votes">Five</label><br>
+            <input type="radio" name="choice" id="six_votes" value=6>
+            <label for="six_votes">Six</label><br>
+            <input type="radio" name="choice" id="seven_votes" value=7>
+            <label for="unknown_votes">Seven</label><br>
+
+            <input type="radio" name="choice" id="eight_votes" value=8>
+            <label for="eight_votes">eight</label><br>
+            <input type="radio" name="choice" id="nine_votes" value=9>
+            <label for="nine_votes">nine</label><br>
+        </form>
+            <p>User Estimate: {{ image.user_score }}</p>
+            <p>Abnormal Votes: {{ image.one_votes }}</p>
+            <p>Normal Votes: {{ image.zero_votes }}</p>
+            <p>Unknown Votes: {{ image.unknown_votes }}</p>
+            <p>Model's Probability (here for testing): {{ image.model_probability }}</p>
+{% endblock %}
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js" integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em" crossorigin="anonymous"></script>
+</body>

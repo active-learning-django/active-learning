@@ -54,6 +54,43 @@ class ImageLabel(models.Model):
         return self.title
 
 
+class NumberLabel(models.Model):
+    label_option = (
+        ("0", "0"),
+        ("1", "1"),
+        ("2", "2"),
+        ("3", "3"),
+        ("4", "4"),
+        ("5", "5"),
+        ("6", "6"),
+        ("7", "7"),
+        ("8", "8"),
+        ("9", "9"),
+        ("Unknown", "Unknown"),
+    )
+
+    title = models.CharField(max_length=100)
+    model_classification = models.CharField(max_length=100, choices=label_option)
+    user_score = models.FloatField(default=0.5)
+    adjusted_user_score = models.FloatField(default=0)
+    model_score = models.FloatField(default=0)
+    model_difference = models.FloatField(default=0)
+    model_probability = models.FloatField(default=0)
+    zero_votes = models.IntegerField(default=0)
+    one_votes = models.IntegerField(default=0)
+    two_votes = models.IntegerField(default=0)
+    three_votes = models.IntegerField(default=0)
+    four_votes = models.IntegerField(default=0)
+    five_votes = models.IntegerField(default=0)
+    six_votes = models.IntegerField(default=0)
+    seven_votes = models.IntegerField(default=0)
+    eight_votes = models.IntegerField(default=0)
+    nine_votes = models.IntegerField(default=0)
+    unknown_votes = models.IntegerField(default=0)
+    machine_learning_model = models.ForeignKey(MachineLearningModel, on_delete=models.CASCADE)
+    image_file = models.ImageField(upload_to=get_image_filename)
+
+
 class Classifier(models.Model):
     print("classifier model")
 

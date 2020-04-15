@@ -311,6 +311,79 @@ def vote(request, image_id):
     image.save()
     return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
 
+# this will just update our database with the user's vote of whether image is normal or abnormal
+# we will envoke this from our form in /label, template label_image
+def voteNumbers(request, image_id):
+    image = get_object_or_404(ImageLabel, pk=image_id)
+    ml_model = image.machine_learning_model
+    ml_id = ml_model.id
+    choice = request.POST['choice']
+    if choice == "0":
+        print("Choice is 0")
+        selected_choice = image.zero_votes
+        selected_choice += 1
+        image.zero_votes = selected_choice
+    elif choice == "1":
+        print("Choice is 1")
+        selected_choice = image.one_votes
+        selected_choice += 1
+        image.one_votes = selected_choice
+    elif choice == "2":
+        print("Choice is 2")
+        selected_choice = image.two_votes
+        selected_choice += 1
+        image.two_votes = selected_choice
+    elif choice == "3":
+        print("Choice is 3")
+        selected_choice = image.three_votes
+        selected_choice += 1
+        image.three_votes = selected_choice
+    elif choice == "4":
+        print("Choice is 4")
+        selected_choice = image.four_votes
+        selected_choice += 1
+        image.four_votes = selected_choice
+    elif choice == "5":
+        print("Choice is 5")
+        selected_choice = image.five_votes
+        selected_choice += 1
+        image.five_votes = selected_choice
+    elif choice == "6":
+        print("Choice is 6")
+        selected_choice = image.six_votes
+        selected_choice += 1
+        image.six_votes = selected_choice
+    elif choice == "7":
+        print("Choice is 7")
+        selected_choice = image.seven_votes
+        selected_choice += 1
+        image.seven_votes = selected_choice
+    elif choice == "8":
+        print("Choice is 8")
+        selected_choice = image.eight_votes
+        selected_choice += 1
+        image.eight_votes = selected_choice
+    elif choice == "9":
+        print("Choice is 9")
+        selected_choice = image.nine_votes
+        selected_choice += 1
+        image.nine_votes = selected_choice
+    else:
+        selected_choice = image.unknown_votes
+        selected_choice += 1
+        image.unknown_votes = selected_choice
+
+    # need to change this since there's 9 cases now
+    if image.one_votes + image.zero_votes != 0:
+        image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
+        # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
+        image.adjusted_user_score = abs(image.user_score - 0.5)
+    else:
+        image.user_score = 0.5
+        image.adjusted_user_score = 0
+    image.save()
+    return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
+
 
 # this trains the model once, then should redirect to iteration page i think
 def trainModel(request, ml_model_id):
@@ -370,6 +443,7 @@ def testSkikit(request, ml_model_id):
     return HttpResponse(html)
 
 
+## all the below if for dynamic modeling which isn't fully implemented yet
 def generateAbstractModel(request):
     if request.method == "GET":
         return render(request, 'imagelabeling/create_dynamic_form.html',
@@ -430,6 +504,7 @@ class viewAllModels(ListView):
         model = ModelSchema
         template_name = 'imagelabeling/dynamic_models.html'
 
+
 def dynamic_model_detail(request, model_id):
     try:
         model = get_object_or_404(ModelSchema, pk=model_id)
@@ -438,7 +513,7 @@ def dynamic_model_detail(request, model_id):
         fields_object = this_model_schema.get_fields()
         fields = {}
         for field in fields_object:
-            this_field = get_object_or_404(ModelSchema, pk=field.id)
+            this_field = get_object_or_404(FieldSchema, pk=field.id)
             fields[this_field.id] = this_field.name
 
 
