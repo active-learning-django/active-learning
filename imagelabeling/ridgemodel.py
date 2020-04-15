@@ -7,6 +7,8 @@ from sklearn.linear_model import RidgeCV
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 from sklearn.externals import joblib
+
+
 class Calculation:
     def readCSV(self):
         data = pd.read_csv(self)

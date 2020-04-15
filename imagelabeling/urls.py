@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-from .views import HomePageView, CreatePostView
+from .views import HomePageView, CreatePostView, viewAllModels
 
 
 urlpatterns = [
@@ -13,9 +13,14 @@ urlpatterns = [
     path('model/<int:ml_model_id>/', views.ml_model_detail, name='detail'),
     path('model/<int:ml_model_id>/label/', views.LabelImageView, name='label_image'),
     path('model/<int:ml_model_id>/label/<int:image_id>/', views.image_label_detail, name='detail'),
+    path('dynamic-model/<int:model_id>', views.dynamic_model_detail, name='dynamic model detail'),
     path('label/<int:image_id>/vote', views.vote, name='vote'),
     path('model/<int:ml_model_id>/run-predictions', views.updateImagesWithModelPrediction, name='update_images_with_model_prediction'),
     path('model/<int:ml_model_id>/visualization', views.visualization, name='visualization'),
     path('model/<int:ml_model_id>/probability', views.CalculateProbability, name='show roc curve'),
-    path('model/<int:ml_model_id>/svm', views.SVMTuning, name ='parameter tunning for SVM'),
+    path('model/<int:ml_model_id>/svm', views.SVMTuning, name='parameter tunning for SVM'),
+    path('generate-abstract-model', views.generateAbstractModel, name='generate abstract model'),
+    path('view-models', views.viewObjectsOfModel, name='view objects of models'),
+    path('view-all-models', viewAllModels.as_view(), name='view models'),
+    path('generate-object-from-model', views.generateObjectFromDynamicModel, name='generate object from model'),
 ]

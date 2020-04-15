@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'imagelabeling',
+    'dynamic_models'
 ]
 
 MIDDLEWARE = [
@@ -112,7 +113,9 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+# changed to false to get around dynamic models bug
+
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)

@@ -4,6 +4,9 @@ import csv
 from .test_skikit import Test_Skikit
 from .model_operations import ModelOperations
 
+# get all models
+from django.db import models
+
 # views here.
 from django.views.generic import ListView, CreateView
 from django.http import HttpResponse, HttpResponseRedirect
@@ -16,8 +19,8 @@ from django.core import serializers
 from zipfile import *
 
 # get the forms
-from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel
-from .models import ImageLabel, MachineLearningModel
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm
+from .models import ImageLabel, MachineLearningModel, ModelSchema, FieldSchema
 from django.shortcuts import get_object_or_404, render
 
 # ml stuff
@@ -29,6 +32,9 @@ from .ridgemodel import Calculation
 from pylab import *
 import io, urllib, base64
 from sklearn.metrics import roc_curve, auc
+
+# get models
+from django.apps import apps
 
 
 
@@ -314,6 +320,7 @@ def trainModel(request, ml_model_id):
     t.train_model(ml_model.title)
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/probability')
 
+
 # update image_label object with classification and probability
 def updateImagesWithModelPrediction(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
@@ -354,7 +361,6 @@ def visualization(request, ml_model_id):
     return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
 
 
-
 def testSkikit(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     t = ModelOperations()
@@ -364,3 +370,93 @@ def testSkikit(request, ml_model_id):
     return HttpResponse(html)
 
 
+def generateAbstractModel(request):
+    if request.method == "GET":
+        return render(request, 'imagelabeling/create_dynamic_form.html',
+                      {'CreateDynamicModelForm': CreateDynamicModelForm})
+    else:
+        form = CreateDynamicModelForm(request.POST)
+        if form.is_valid():
+            model_name = request.POST.get("model_name")
+            model_name_to_save = ModelSchema.objects.create(name=model_name)
+
+            # should be an int
+            number_of_features = request.POST.get("number_of_features")
+
+            #should be an int
+            number_of_classifications = request.POST.get("number_of_classifications")
+
+            # create certain number of features
+            for x in range(0, int(number_of_features)):
+                feature_number = 'feature_' + str(x)
+                feature_field_schema = FieldSchema.objects.create(name=feature_number, data_type='character')
+                feature = model_name_to_save.add_field(
+                    feature_field_schema,
+                    null=True,
+                    unique=False,
+                    max_length=100
+                )
+
+            # create certain number of classifications
+            for x in range(0, int(number_of_classifications)):
+                classification_number = 'classification_' + str(x)
+                classification_field_schema = FieldSchema.objects.create(name=classification_number, data_type='character')
+                classification = model_name_to_save.add_field(
+                    classification_field_schema,
+                    null=True,
+                    unique=False,
+                    max_length=100
+                )
+
+            # need to save the dynamic model
+            final_model = model_name_to_save.as_model()
+            assert issubclass(final_model, models.Model)
+
+            request.session["model_name"] = model_name
+            return HttpResponseRedirect('/generate-object-from-model')
+
+
+def generateObjectFromDynamicModel(request):
+    model_name = request.session["model_name"]
+    this_model_schema = ModelSchema.objects.get(name=model_name)
+    this_model = this_model_schema.as_model()
+
+    instance = this_model.objects.create()
+    assert instance.pk is not None
+    return HttpResponse("<html><body>" + str(instance.pk) + "</body></html>")
+
+
+class viewAllModels(ListView):
+        model = ModelSchema
+        template_name = 'imagelabeling/dynamic_models.html'
+
+def dynamic_model_detail(request, model_id):
+    try:
+        model = get_object_or_404(ModelSchema, pk=model_id)
+        name = model.name
+        this_model_schema = ModelSchema.objects.get(name=name)
+        fields_object = this_model_schema.get_fields()
+        fields = {}
+        for field in fields_object:
+            this_field = get_object_or_404(ModelSchema, pk=field.id)
+            fields[this_field.id] = this_field.name
+
+
+    except ModelSchema.DoesNotExist:
+        raise Http404("Model does not exist")
+    return render(request, 'imagelabeling/dynamic_model_detail.html', {'model': model, 'fields': fields})
+
+def viewObjectsOfModel(request):
+    model_name = request.session["model_name"]
+    test_model_schema = ModelSchema.objects.get(name=model_name)
+    model = test_model_schema.as_model()
+    objects = model.objects.all()
+    html = "<html><body>"
+
+    for object in objects:
+        html += str(object.pk)
+        html += " "
+        print (type(object))
+
+    html += "</body></html>"
+    return HttpResponse(html)

@@ -1,4 +1,3 @@
-from django.db import models
 
 # Create your models here.
 from django.db import models
@@ -6,14 +5,30 @@ from django.template.defaultfilters import slugify
 from django.forms import ModelForm
 from django import forms
 
+# dynamic models
+from dynamic_models.models import AbstractModelSchema, AbstractFieldSchema
+
+
+class ModelSchema(AbstractModelSchema):
+    pass
+
+
+class FieldSchema(AbstractFieldSchema):
+    pass
+
+
+
+
 class MachineLearningModel(models.Model):
     title = models.CharField(max_length=100, unique=True)
     classification_notes = models.CharField(max_length=100)
+
 
 def get_image_filename(instance, filename):
     title = instance.machine_learning_model.title
     slug_title = slugify(title)
     return "../ml_model_images/%s/%s" % (slug_title, filename)
+
 
 class ImageLabel(models.Model):
     label_option = (
@@ -38,6 +53,7 @@ class ImageLabel(models.Model):
     def __str__(self):
         return self.title
 
+
 class Classifier(models.Model):
     print("classifier model")
 
@@ -49,3 +65,4 @@ class NumOfIteration(models.Model):
 
     def __str__(self):
         return self.Iteration
+

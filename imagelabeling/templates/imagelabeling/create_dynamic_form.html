@@ -1,0 +1,15 @@
+{%  extends "imagelabeling/base.html" %}
+{% block headingtitle %} Create Dynamic Model {% endblock %}
+
+
+{% block content %}
+    <h1> {% block title %} Create Model {% endblock %} </h1>
+    <form id="create_model_form" method="post" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for hidden in CreateMachineLearningModelForm.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
+        {{  CreateDynamicModelForm}}
+        <input type="submit" name="submit" value="Create Model with provided images" />
+    </form>
+{% endblock %}

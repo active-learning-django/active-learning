@@ -25,6 +25,13 @@ class ImageBulkUploadForm(forms.Form):
     bulk_upload = forms.FileField()
 
 
+# this will generate to the dynamically created model
+class CreateDynamicModelForm(forms.Form):
+    model_name = forms.CharField(label="model name")
+    number_of_classifications = forms.IntegerField(label="number of classifications")
+    number_of_features = forms.IntegerField(label="number of features")
+    fields = [model_name, "number_of_classifications", "number_of_features"]
+
 class NumOfIterationForm(forms.ModelForm):
     class Meta:
         model = NumOfIteration

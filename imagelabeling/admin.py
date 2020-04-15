@@ -1,11 +1,12 @@
+from django.apps import apps
 from django.contrib import admin
-
-# Register your models here.
-from django.contrib import admin
-
-from .models import MachineLearningModel
-from .models import ImageLabel
+from django.contrib.admin.sites import AlreadyRegistered
+from django.db import models
 
 
-admin.site.register(ImageLabel)
-admin.site.register(MachineLearningModel)
+app_models = apps.get_app_config('imagelabeling').get_models()
+for model in app_models:
+    try:
+        admin.site.register(model)
+    except AlreadyRegistered:
+        pass

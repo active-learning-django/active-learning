@@ -49,3 +49,4 @@ termcolor==1.1.0
 urllib3==1.25.8
 Werkzeug==0.14.1
 wrapt==1.12.1
+django-dynamic-model==0.1.0
