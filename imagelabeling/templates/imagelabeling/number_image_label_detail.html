@@ -11,7 +11,7 @@
             </div>
         </div>
 
-        <form action="{% url 'vote' image.id %}" method="post">
+        <form action="{% url 'voteNumbers' image.id %}" method="post">
             {% csrf_token %}
             <input type="radio" name="choice" id="zero_votes" value=0>
             <label for="zero_votes">Zero</label><br>
@@ -19,37 +19,38 @@
             <label for="one_votes">One</label><br>
 
             <input type="radio" name="choice" id="two_votes" value=2>
-            <label for="zero_votes">Two</label><br>
+            <label for="two_votes">Two</label><br>
             <input type="radio" name="choice" id="three_votes" value=3>
-            <label for="one_votes">Three</label><br>
+            <label for="three_votes">Three</label><br>
             <input type="radio" name="choice" id="four_votes" value=4>
             <label for="four_votes">Four</label><br>
-            <input type="submit" value="Vote">
+
 
             <input type="radio" name="choice" id="five_votes" value=5>
             <label for="five_votes">Five</label><br>
             <input type="radio" name="choice" id="six_votes" value=6>
             <label for="six_votes">Six</label><br>
             <input type="radio" name="choice" id="seven_votes" value=7>
-            <label for="unknown_votes">Seven</label><br>
+            <label for="seven_votes">Seven</label><br>
 
             <input type="radio" name="choice" id="eight_votes" value=8>
             <label for="eight_votes">eight</label><br>
             <input type="radio" name="choice" id="nine_votes" value=9>
             <label for="nine_votes">nine</label><br>
+                    <input type="submit" value="Vote">
         </form>
             <p>User Estimate: {{ image.user_score }}</p>
-            <p>Zero Votes: {{ image.zero_votes }}</p>
-            <p>One Votes: {{ image.one_votes }}</p>
-            <p>Two Votes: {{ image.two_votes }}</p>
-            <p>Three Votes: {{ image.three_votes }}</p>
-            <p>Four Votes: {{ image.four_votes }}</p>
-            <p>Five Votes: {{ image.five_votes }}</p>
-            <p>Six Votes: {{ image.six_votes }}</p>
-            <p>Seven Votes: {{ image.seven_votes }}</p>
-            <p>Eight Votes: {{ image.eight_votes }}</p>
-            <p>Nine Votes: {{ image.nine_votes }}</p>
-            <p>Unknown Votes: {{ image.unknown_votes }}</p>
+            <p>Zero Choices: {{ image.zero_votes }}</p>
+            <p>One Choices: {{ image.one_votes }}</p>
+            <p>Two Choices: {{ image.two_votes }}</p>
+            <p>Three Choices: {{ image.three_votes }}</p>
+            <p>Four Choices: {{ image.four_votes }}</p>
+            <p>Five Choices: {{ image.five_votes }}</p>
+            <p>Six Choices: {{ image.six_votes }}</p>
+            <p>Seven Choices: {{ image.seven_votes }}</p>
+            <p>Eight Choices: {{ image.eight_votes }}</p>
+            <p>Nine Choices: {{ image.nine_votes }}</p>
+            <p>"Unknown" Choices: {{ image.unknown_votes }}</p>
             <p>Model's Probability (here for testing): {{ image.model_probability }}</p>
 {% endblock %}
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>

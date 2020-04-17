@@ -21,10 +21,11 @@ urlpatterns = [
     path('model/<int:ml_model_id>/svm', views.SVMTuning, name='parameter tunning for SVM'),
 
     path('create-numbers-model', views.CreateNumbersModelView, name='create numbers model'),
+    path('model/<int:ml_model_id>/number-label/<int:numbers_image_id>/', views.numbers_image_label_detail, name='detail'),
     path('model/<int:ml_model_id>/upload-numbers', views.bulk_upload_view_number, name='bulk upload view for numbers'),
     path('model/<int:ml_model_id>/train-numbers', views.trainNumbersModel, name='train numbers model'),
     path('model/<int:ml_model_id>/probability-numbers', views.CalculateProbabilityNumbers, name='show roc curve'),
-path('model/<int:ml_model_id>/run-predictions-numbers', views.updateNumbersImagesWithModelPrediction, name='update with predictions'),
+    path('model/<int:ml_model_id>/run-predictions-numbers', views.updateNumbersImagesWithModelPrediction, name='update with predictions'),
 
     path('generate-abstract-model', views.generateAbstractModel, name='generate abstract model'),
     path('view-models', views.viewObjectsOfModel, name='view objects of models'),

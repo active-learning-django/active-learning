@@ -1,6 +1,6 @@
 from django import forms
 from .models import ImageLabel
-from .models import MachineLearningModel
+from .models import MachineLearningModel, MachineLearningNumbersModel
 from django.utils.translation import gettext_lazy as _
 from .models import NumOfIteration
 
@@ -8,6 +8,15 @@ from .models import NumOfIteration
 class CreateMachineLearningModelForm(forms.ModelForm):
     class Meta:
         model = MachineLearningModel
+        fields = ['title', 'classification_notes']
+        labels = {
+            'title': _('Title'),
+            'classification_notes': _('Classification Notes'),
+        }
+
+class CreateMachineLearningNumbersModelForm(forms.ModelForm):
+    class Meta:
+        model = MachineLearningNumbersModel
         fields = ['title', 'classification_notes']
         labels = {
             'title': _('Title'),

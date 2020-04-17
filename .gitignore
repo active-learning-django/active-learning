@@ -17,6 +17,6 @@ pyenv.cfg
 # ignore these files so we don't commit them
 media/images/UNLABELED/*
 media/images/LABELED/*
-ml_model_images/*
+media/ml_model_images/*
 final_data_test*
 output_*

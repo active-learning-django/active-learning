@@ -20,8 +20,8 @@ from django.core import serializers
 from zipfile import *
 
 # get the forms
-from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm
-from .models import ImageLabel, MachineLearningModel, ModelSchema, FieldSchema, NumberLabel
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, CreateMachineLearningNumbersModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm
+from .models import ImageLabel, MachineLearningModel, MachineLearningNumbersModel, ModelSchema, FieldSchema, NumberLabel
 from django.shortcuts import get_object_or_404, render
 
 # ml stuff
@@ -106,8 +106,8 @@ def CalculateProbability(request, ml_model_id):
 def CalculateProbabilityNumbers(request, ml_model_id):
     # get name of model we're running analysis on
     try:
-        ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
-    except MachineLearningModel.DoesNotExist:
+        ml_model = MachineLearningNumbersModel.objects.get(pk=ml_model_id)
+    except MachineLearningNumbersModel.DoesNotExist:
         raise Http404("Model does not exist")
 
     path = 'final_data_test_' + ml_model.title + '.csv'
@@ -241,11 +241,10 @@ def CreatePostView(request):
     return render(request, 'imagelabeling/post.html',
                   {'CreateMachineLearningModelForm': CreateMachineLearningModelForm})
 
-
 def CreateNumbersModelView(request):
     if request.method == 'POST':
 
-        createMLModelForm = CreateMachineLearningModelForm(request.POST)
+        createMLModelForm = CreateMachineLearningNumbersModelForm(request.POST)
 
         if createMLModelForm.is_valid():
             create_model_form = createMLModelForm.save(commit=False)
@@ -260,10 +259,9 @@ def CreateNumbersModelView(request):
         else:
             print(createMLModelForm.errors)
     else:
-        createMLModelForm = CreateMachineLearningModelForm()
+        createMLModelForm = CreateMachineLearningNumbersModelForm()
     return render(request, 'imagelabeling/post.html',
-                  {'CreateMachineLearningModelForm': CreateMachineLearningModelForm})
-
+                  {'CreateMachineLearningModelForm': CreateMachineLearningNumbersModelForm})
 
 def handle_uploaded_file(model, f):
     print("handling zip file")
@@ -280,7 +278,6 @@ def handle_uploaded_file(model, f):
             photo = ImageLabel(machine_learning_model=model, image_file=image_file, title=name)
             photo.save()
             print("name again")
-
 
 def bulk_upload_view(request, ml_model_id):
     try:
@@ -299,8 +296,8 @@ def bulk_upload_view(request, ml_model_id):
 
 def bulk_upload_view_number(request, ml_model_id):
     try:
-        ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
-    except MachineLearningModel.DoesNotExist:
+        ml_model = MachineLearningNumbersModel.objects.get(pk=ml_model_id)
+    except MachineLearningNumbersModel.DoesNotExist:
         raise Http404("Model does not exist")
     if request.method == 'POST':
         form = ImageBulkUploadForm(request.POST, request.FILES)
@@ -333,6 +330,14 @@ def ml_model_detail(request, ml_model_id):
         ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
         images = ml_model.imagelabel_set.all()
     except MachineLearningModel.DoesNotExist:
+        raise Http404("Model does not exist")
+    return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model, 'images': images})
+
+def ml_numbers_model_detail(request, ml_model_id):
+    try:
+        ml_model = MachineLearningNumbersModel.objects.get(pk=ml_model_id)
+        images = ml_model.imagelabel_set.all()
+    except MachineLearningNumbersModel.DoesNotExist:
         raise Http404("Model does not exist")
     return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model, 'images': images})
 
@@ -393,10 +398,23 @@ def vote(request, image_id):
     image.save()
     return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
 
+
+def numbers_image_label_detail(request, ml_model_id, numbers_image_id):
+    try:
+        ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
+    except MachineLearningNumbersModel.DoesNotExist:
+        raise Http404("Model does not exist")
+    try:
+        image = NumberLabel.objects.get(pk=numbers_image_id)
+    except NumberLabel.DoesNotExist:
+        raise Http404("Label does not exist")
+    return render(request, 'imagelabeling/number_image_label_detail.html', {'image': image, 'ml_model': ml_model})
+
+
 # this will just update our database with the user's vote of whether image is normal or abnormal
 # we will envoke this from our form in /label, template label_image
 def voteNumbers(request, image_id):
-    image = get_object_or_404(ImageLabel, pk=image_id)
+    image = get_object_or_404(NumberLabel, pk=image_id)
     ml_model = image.machine_learning_model
     ml_id = ml_model.id
     choice = request.POST['choice']
@@ -455,7 +473,7 @@ def voteNumbers(request, image_id):
         selected_choice += 1
         image.unknown_votes = selected_choice
 
-    # need to change this since there's 9 cases for this view
+    # for now, just get the one with the most votes and make sure that's the class associated with it
     if image.one_votes + image.zero_votes != 0:
         image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
         # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
@@ -476,7 +494,7 @@ def trainModel(request, ml_model_id):
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/probability')
 
 def trainNumbersModel(request, ml_model_id):
-    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
     t = ModelOperationsNumbers()
     # change from the multithreaded solution since that might be breaking
     t.train_model(ml_model.title)
@@ -503,7 +521,7 @@ def updateImagesWithModelPrediction(request, ml_model_id):
 
 # TODO: Revise this to work for numbers/digits dataset
 def updateNumbersImagesWithModelPrediction(request, ml_model_id):
-    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
     images = ml_model.numberlabel_set.all()
     df = pd.read_csv('final_data_test_' + ml_model.title + '.csv')
     for image in images:
@@ -531,7 +549,7 @@ def visualization(request, ml_model_id):
 
 
 def numbers_visualization(request, ml_model_id):
-    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
     images = ml_model.numberlabel_set.all()
     images_json = serializers.serialize('json', images)
     # so from each image, we need the adjusted prediction number by the model
