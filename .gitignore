@@ -14,6 +14,11 @@ venv/*
 pyenv.cfg
 .DS_Store
 
+
 # ignore these files so we don't commit them
 media/images/UNLABELED/*
 media/images/LABELED/*
+output_test*
+model_joblibs/*
+final_data_test*
+media/ml_model_images/*

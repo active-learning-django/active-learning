@@ -24,6 +24,21 @@ for (let i = 0; i < data_from_django.length; i++) {
 }
 console.log(final_data);
 
+let userToModelMatrix = Array(10).fill(Array(10).fill(0));
+// track and count the failures of the model
+for (let i = 0; i < final_data.length; i++) {
+    let objectToCheck = final_data[i];
+    if (objectToCheck.model_score !== objectToCheck.user_score) {
+        let count = userToModelMatrix[objectToCheck.model_score][objectToCheck.user_score];
+        count++;
+        userToModelMatrix[objectToCheck.model_score][objectToCheck.user_score] = count;
+    }
+}
+
+console.log(userToModelMatrix)
+
+
+
 //------------------------SVG PREPARATION------------------------//
 // set the dimensions and margins of the graph
 var margin = {top: 10, right: 30, bottom: 30, left: 60},
