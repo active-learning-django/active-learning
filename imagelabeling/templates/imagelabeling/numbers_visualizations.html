@@ -24,6 +24,30 @@ for (let i = 0; i < data_from_django.length; i++) {
 }
 console.log(final_data);
 
+// create matrix
+let userToModelMatrix = [];
+for (let i = 0; i < 10; i++) {
+    let innerArray = [];
+    for (let j = 0; j <  10; j++) {
+        innerArray[j] = 0;
+    }
+    userToModelMatrix[i] = innerArray;
+}
+
+// NaN is a number
+for (let i = 0; i < final_data.length; i++) {
+    let objectToCheck = final_data[i];
+    const modelScore = parseInt(objectToCheck.model_score);
+    const userScore = parseInt(objectToCheck.user_score)
+    if (!isNaN(userScore) && !isNaN(modelScore)) {
+        let count = userToModelMatrix[modelScore][userScore]
+        count++;
+        userToModelMatrix[modelScore][userScore] = count;
+    }
+}
+console.log(userToModelMatrix)
+
+
 //------------------------SVG PREPARATION------------------------//
 // set the dimensions and margins of the graph
 var margin = {top: 10, right: 30, bottom: 30, left: 60},
