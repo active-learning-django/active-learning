@@ -4,6 +4,7 @@ from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import RidgeCV
 
+<<<<<<< HEAD
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import LabelBinarizer
 
@@ -26,20 +27,52 @@ class Calculation:
 
         X = self.drop(['label', "image", 'dif', 'probability'], axis=1)
         y = self['label'].values.reshape(-1, 1)
+=======
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
+import statistics
+class Model:
+    # def readCSV(self):
+    #     data = pd.read_csv(self)
+    #     data.drop(['Unnamed: 0'], axis=1, inplace=True)
+    #     data['dif'] = 0
+    #     data['probability'] = 0
+
+        # return data
+    # self == data frame
+    def ridge_regression(self):
+        # p = '../final_data_test.csv'
+        # input = p
+        data = pd.read_csv(self)
+        data.drop(['Unnamed: 0'], axis=1, inplace=True)
+        data['dif'] = 0
+        data['probability'] = 0
+        # data = self
+        # seperate x,y
+        X = data.drop(['label', "image", 'dif', 'probability'], axis=1)
+        y = data['label'].values.reshape(-1, 1)
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
         # split train_test
         train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=0)
         # stratify = y is used when data is not enough or biased
 
         # find best alpha
+<<<<<<< HEAD
         alpha_list = 10 ** np.linspace(2, -5, 22) * 0.5
         print(alpha_list)
+=======
+        alpha_list = 10 ** np.linspace(10, -2, 100) * 0.5
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
         # run model with all alpha
         ridgecv = RidgeCV(alphas=alpha_list, scoring='neg_mean_squared_error', normalize=True)
         ridgecv.fit(train_X, train_y)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
         # the best shrinkage
         best_alpha = ridgecv.alpha_
 
@@ -49,9 +82,15 @@ class Calculation:
         ridge_refit.predict(test_X)
 
         # #save model to Joblib Module
+<<<<<<< HEAD
         joblib_file = "joblib_model.pkl"
         joblib.dump(ridge_refit, joblib_file)
 
+=======
+        # joblib_file = "joblib_model.pkl"
+        # joblib.dump(ridge_refit, joblib_file)
+        #
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
         # # Load from file
         # joblib_model = joblib.load(joblib_file)
 
@@ -65,6 +104,7 @@ class Calculation:
         # print("R^2 score: ", score)
 
         # probability result
+<<<<<<< HEAD
         self['probability'] = prob
 
         # calculate absolute value
@@ -73,6 +113,16 @@ class Calculation:
         # result = [data, data['probability'], data['dif'],score]
 
         return self
+=======
+        data['probability'] = prob
+
+        # calculate absolute value
+        data['dif'] = abs(data['probability'] - 0.5)
+
+        # result = [data, data['probability'], data['dif'],score]
+
+        return data
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
     def findprob(self):
         return self['probability']
@@ -92,8 +142,12 @@ class Calculation:
         plt.ylim([-0.1, 1.2])
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
+<<<<<<< HEAD
         # plt.savefig('../media/ROC_Curve/ROC.png')
         return plt
+=======
+        plt.savefig('../media/ROC_Curve/ROC.png')
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
     def concateData(self):
 
@@ -102,6 +156,7 @@ class Calculation:
 
         # find find the lowest difference
         low_diff = self[self['dif'] < 0.3]
+<<<<<<< HEAD
         # if (len(low_diff) < 2):
 
         newdf = pd.concat([self,low_diff],axis = 0)
@@ -163,3 +218,24 @@ if __name__ == '__main__':
     #
     # add uncertain cases to original data
     # print(Calculation.concateData(result[0]))
+=======
+
+        newdf = pd.concat([self,low_diff],axis = 0)
+        return newdf
+
+#
+# if __name__ == '__main__':
+
+    # path = '../final_data_test.csv'
+    # data = Model.readCSV(path)
+    # print(Model.readCSV(path))
+
+    #read file & run ridge regression
+    # result = Model.ridge_regression(path)
+    # print(statistics.mean(result))
+    #create ROC curve
+    # Model.ROC(result)
+    #
+    # add uncertain cases to original data
+    # print(Model.concateData(result[0]))
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18

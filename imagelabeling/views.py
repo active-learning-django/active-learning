@@ -5,9 +5,12 @@ from .test_skikit import Test_Skikit
 from .model_operations import ModelOperations
 from .model_operations_numbers import ModelOperationsNumbers
 
+<<<<<<< HEAD
 # get all models
 from django.db import models
 
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 # views here.
 from django.views.generic import ListView, CreateView
 from django.http import HttpResponse, HttpResponseRedirect
@@ -20,12 +23,18 @@ from django.core import serializers
 from zipfile import *
 
 # get the forms
+<<<<<<< HEAD
 from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm
 from .models import ImageLabel, MachineLearningModel, ModelSchema, FieldSchema, NumberLabel
+=======
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, NumOfIterationForm
+from .models import ImageLabel, MachineLearningModel, NumOfIteration
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 from django.shortcuts import get_object_or_404, render
 
 # ml stuff
 import pandas as pd
+<<<<<<< HEAD
 
 from .ridgemodel import Calculation
 from .ridgemodel_multiclass import Calculation as CalculationMultiClass
@@ -38,6 +47,19 @@ from sklearn.metrics import roc_curve, auc
 # get models
 from django.apps import apps
 
+=======
+import openpyxl
+import os
+from .ridgemodel import Model
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
+import statistics
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib import pylab
+from pylab import *
+import io, urllib, base64
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
 
 
@@ -45,6 +67,7 @@ class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
+<<<<<<< HEAD
 def SVMTuning(request, ml_model_id):
     if request.method == "POST":
         form = GammaForm(request.POST)
@@ -64,10 +87,22 @@ def SVMTuning(request, ml_model_id):
 # call this view right after this model is created
 def CalculateProbability(request, ml_model_id):
     # get name of model we're running analysis on
+=======
+
+def IterationInputPage(request):
+    model = NumOfIteration
+    form_class = NumOfIterationForm
+    template_name = 'imagelabeling/temp.html'
+    return render(request, 'imagelabeling/temp.html',{'form': form_class})
+
+
+def DisplayROC(request, ml_model_id):
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
     try:
         ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
     except MachineLearningModel.DoesNotExist:
         raise Http404("Model does not exist")
+<<<<<<< HEAD
 
     path = 'final_data_test_' + ml_model.title + '.csv'
     #path = '/Users/maggie/Desktop/active-learning/large_data.csv'
@@ -218,6 +253,39 @@ def RenderGraph(request):
             # return render(request, 'imagelabeling/graph.html', {'data': uri})
             #     return render(request, 'imagelabeling/graph.html', args)
 
+=======
+    # need to figure out path
+    path = 'final_data_test_' + ml_model.title + '.csv'
+    data = Model.ridge_regression(path)
+    #
+    # newdf = Model.concateData(data)
+    #
+    # return HttpResponse(len(newdf))
+
+    prediction = data['probability']
+    actual = data['label'].values.reshape(-1, 1)
+    false_positive_rate, true_positive_rate, thresholds = roc_curve(actual, prediction)
+    roc_auc = auc(false_positive_rate, true_positive_rate)
+    plt.title('ROC curve for Ridge Regression Model')
+    plt.plot(false_positive_rate, true_positive_rate, 'b',
+             label='AUC = %0.2f' % roc_auc)
+    plt.legend(loc='lower right')
+    plt.plot([0, 1], [0, 1], 'r--')
+    plt.xlim([-0.1, 1.2])
+    plt.ylim([-0.1, 1.2])
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+
+    fig = plt.gcf()
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    string = base64.b64encode(buf.read())
+    uri = urllib.parse.quote(string)
+
+    return render(request, 'imagelabeling/graph.html', {'data': uri})
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
 def CreatePostView(request):
     if request.method == 'POST':
@@ -234,6 +302,7 @@ def CreatePostView(request):
             # after that's done, we can train the model
             # redirect to model detail page
             return HttpResponseRedirect('/model/' + str(create_model_form.id) + '/upload')
+<<<<<<< HEAD
         else:
             print(createMLModelForm.errors)
     else:
@@ -257,6 +326,8 @@ def CreateNumbersModelView(request):
             # after that's done, we can train the model
             # redirect to model detail page
             return HttpResponseRedirect('/model/' + str(create_model_form.id) + '/upload-numbers')
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
         else:
             print(createMLModelForm.errors)
     else:
@@ -297,6 +368,7 @@ def bulk_upload_view(request, ml_model_id):
     return render(request, 'imagelabeling/bulk_upload_form.html',
                   {'BulkUploadForm': form, 'ml_model': ml_model})
 
+<<<<<<< HEAD
 def bulk_upload_view_number(request, ml_model_id):
     try:
         ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
@@ -327,6 +399,8 @@ def handle_uploaded_file_number(model, f):
             photo = NumberLabel(machine_learning_model=model, image_file=image_file, title=name)
             photo.save()
             print("name again")
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
 def ml_model_detail(request, ml_model_id):
     try:
@@ -359,6 +433,7 @@ def image_label_detail(request, ml_model_id, image_id):
         raise Http404("Label does not exist")
     return render(request, 'imagelabeling/image_label_detail.html', {'image': image, 'ml_model': ml_model})
 
+<<<<<<< HEAD
 def number_image_label_detail(request, ml_model_id, number_image_id):
     try:
         ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
@@ -369,6 +444,8 @@ def number_image_label_detail(request, ml_model_id, number_image_id):
     except ImageLabel.DoesNotExist:
         raise Http404("Label does not exist")
     return render(request, 'imagelabeling/number_label_detail.html', {'image': image, 'ml_model': ml_model})
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
 # this will just update our database with the user's vote of whether image is normal or abnormal
 # we will envoke this from our form in /label, template label_image
@@ -395,6 +472,7 @@ def vote(request, image_id):
     # recalculate confidence based on new vote
     if image.one_votes + image.zero_votes != 0:
         image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
+<<<<<<< HEAD
         # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
         image.adjusted_user_score = abs(image.user_score - 0.5)
     else:
@@ -468,6 +546,8 @@ def voteNumbers(request, image_id):
     # need to change this since there's 9 cases for this view
     if image.one_votes + image.zero_votes != 0:
         image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
         # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
         image.adjusted_user_score = abs(image.user_score - 0.5)
     else:
@@ -483,6 +563,7 @@ def trainModel(request, ml_model_id):
     t = ModelOperations()
     # change from the multithreaded solution since that might be breaking
     t.train_model(ml_model.title)
+<<<<<<< HEAD
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/probability')
 
 def trainNumbersModel(request, ml_model_id):
@@ -494,6 +575,10 @@ def trainNumbersModel(request, ml_model_id):
 
 
 # update image_label object with classification and probability
+=======
+    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
+
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 def updateImagesWithModelPrediction(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     images = ml_model.imagelabel_set.all()
@@ -501,6 +586,7 @@ def updateImagesWithModelPrediction(request, ml_model_id):
     for image in images:
         title = "media/ml_model_images/" + ml_model.title + "/" + image.title
         entry = df.loc[df['image'] == title]
+<<<<<<< HEAD
 
         # check for broken image labels or duplicates, needs to be 1
         if len(entry) == 1:
@@ -531,12 +617,27 @@ def updateNumbersImagesWithModelPrediction(request, ml_model_id):
             image.save()
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/numbers-visualization')
 
+=======
+        print(entry)
+        # check for broken image labels
+        if len(entry) > 0:
+            image.model_score = entry["label"]
+            image.save()
+    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/prob')
+
+
+# want to get all the image labels for this model
+# then we want to compare how the users labeled the model,
+# to how the model predicts these labels
+# so we can double check them, pretty much
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 def visualization(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     images = ml_model.imagelabel_set.all()
     images_json = serializers.serialize('json', images)
     # so from each image, we need the adjusted prediction number by the model
     # then the number given by the labelers
+<<<<<<< HEAD
     return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
 
 
@@ -548,6 +649,11 @@ def numbers_visualization(request, ml_model_id):
     # then the number given by the labelers
     return render(request, 'imagelabeling/numbers_visualizations.html', {'images': images_json, 'ml_model': ml_model})
 
+=======
+    html = "<html><body>Visualization will go here!</body></html>"
+    return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
+
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
 def testSkikit(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
@@ -558,6 +664,7 @@ def testSkikit(request, ml_model_id):
     return HttpResponse(html)
 
 
+<<<<<<< HEAD
 ## all the below if for dynamic modeling which isn't fully implemented yet
 def generateAbstractModel(request):
     if request.method == "GET":
@@ -647,3 +754,5 @@ def viewObjectsOfModel(request):
 
     html += "</body></html>"
     return HttpResponse(html)
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18

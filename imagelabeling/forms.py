@@ -25,6 +25,7 @@ class ImageBulkUploadForm(forms.Form):
     bulk_upload = forms.FileField()
 
 
+<<<<<<< HEAD
 # this will generate to the dynamically created model
 class CreateDynamicModelForm(forms.Form):
     model_name = forms.CharField(label="model name")
@@ -32,12 +33,15 @@ class CreateDynamicModelForm(forms.Form):
     number_of_features = forms.IntegerField(label="number of features")
     fields = [model_name, "number_of_classifications", "number_of_features"]
 
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 class NumOfIterationForm(forms.ModelForm):
     class Meta:
         model = NumOfIteration
         fields = ['Iteration']
 
 
+<<<<<<< HEAD
 
 class BooleanForm(forms.Form):
     field = forms.TypedChoiceField(coerce=lambda x: x =='True',
@@ -57,3 +61,5 @@ kerneloption = (
 class SVMKernel(forms.Form):
     field = forms.TypedChoiceField(label="Kernel",coerce=str,
                                    choices=kerneloption)
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18

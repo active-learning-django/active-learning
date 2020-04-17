@@ -13,6 +13,7 @@ urlpatterns = [
     path('model/<int:ml_model_id>/', views.ml_model_detail, name='detail'),
     path('model/<int:ml_model_id>/label/', views.LabelImageView, name='label_image'),
     path('model/<int:ml_model_id>/label/<int:image_id>/', views.image_label_detail, name='detail'),
+<<<<<<< HEAD
     path('label/<int:image_id>/vote', views.vote, name='vote'),
     path('model/<int:ml_model_id>/run-predictions', views.updateImagesWithModelPrediction, name='update_images_with_model_prediction'),
     path('model/<int:ml_model_id>/visualization', views.visualization, name='visualization'),
@@ -32,4 +33,11 @@ path('model/<int:ml_model_id>/run-predictions-numbers', views.updateNumbersImage
     path('view-all-models', viewAllModels.as_view(), name='view models'),
     path('generate-object-from-model', views.generateObjectFromDynamicModel, name='generate object from model'),
     path('dynamic-model/<int:model_id>', views.dynamic_model_detail, name='dynamic model detail'),
+=======
+    path('/label/<int:image_id>/vote/', views.vote, name='vote'),
+    path('model/<int:ml_model_id>/iteration/', views.IterationInputPage, name='ask_user_for_num_interation'),
+    path('model/<int:ml_model_id>/prob/', views.DisplayROC, name='display_ROC_Curve'),
+    path('model/<int:ml_model_id>/run-predictions/', views.updateImagesWithModelPrediction, name='update_images_with_model_prediction'),
+    path('model/<int:ml_model_id>/visualization/', views.visualization, name='visualization'),
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 ]

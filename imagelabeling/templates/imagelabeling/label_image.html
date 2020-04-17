@@ -13,7 +13,10 @@
              <p>User Assignment Score (here for testing): {{ desired_image.user_score }}</p>
              <p>Adjusted Score (here for testing, order by this): {{ desired_image.adjusted_user_score }}</p>
              <p>Model's score (here for testing): {{ desired_image.model_score }}</p>
+<<<<<<< HEAD
              <p>Model's Probability (here for testing): {{ desired_image.model_probability }}</p>
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
         {% endif %}
 
     <form action="{% url 'vote' desired_image.id %}" method="post">

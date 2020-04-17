@@ -4,6 +4,7 @@ from django.db import models
 from django.template.defaultfilters import slugify
 from django.forms import ModelForm
 from django import forms
+<<<<<<< HEAD
 
 # dynamic models
 from dynamic_models.models import AbstractModelSchema, AbstractFieldSchema
@@ -18,6 +19,8 @@ class FieldSchema(AbstractFieldSchema):
 
 
 
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
 class MachineLearningModel(models.Model):
     title = models.CharField(max_length=100, unique=True)
@@ -28,7 +31,10 @@ def get_image_filename(instance, filename):
     title = instance.machine_learning_model.title
     slug_title = slugify(title)
     return "../ml_model_images/%s/%s" % (slug_title, filename)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
 class ImageLabel(models.Model):
     label_option = (
@@ -42,8 +48,11 @@ class ImageLabel(models.Model):
     user_score = models.FloatField(default=0.5)
     adjusted_user_score = models.FloatField(default=0)
     model_score = models.FloatField(default=0)
+<<<<<<< HEAD
     model_difference = models.FloatField(default=0)
     model_probability = models.FloatField(default=0)
+=======
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
     one_votes = models.IntegerField(default=0)
     zero_votes = models.IntegerField(default=0)
     unknown_votes = models.IntegerField(default=0)
@@ -99,7 +108,11 @@ class Classifier(models.Model):
 class NumOfIteration(models.Model):
 
     INTEGER_CHOICES = [tuple([x, x]) for x in range(1, 10)]
+<<<<<<< HEAD
     Iteration = models.IntegerField(max_length=100, choices=INTEGER_CHOICES)
+=======
+    Iteration = models.CharField(max_length=100, choices=INTEGER_CHOICES)
+>>>>>>> 097c50d8f457df51a2502765030ae222ff46ee18
 
     def __str__(self):
         return self.Iteration
