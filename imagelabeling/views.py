@@ -359,6 +359,16 @@ def image_label_detail(request, ml_model_id, image_id):
         raise Http404("Label does not exist")
     return render(request, 'imagelabeling/image_label_detail.html', {'image': image, 'ml_model': ml_model})
 
+def number_image_label_detail(request, ml_model_id, number_image_id):
+    try:
+        ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    except MachineLearningModel.DoesNotExist:
+        raise Http404("Model does not exist")
+    try:
+        image = NumberLabel.objects.get(pk=number_image_id)
+    except ImageLabel.DoesNotExist:
+        raise Http404("Label does not exist")
+    return render(request, 'imagelabeling/number_label_detail.html', {'image': image, 'ml_model': ml_model})
 
 # this will just update our database with the user's vote of whether image is normal or abnormal
 # we will envoke this from our form in /label, template label_image
@@ -594,7 +604,6 @@ def generateAbstractModel(request):
             request.session["model_name"] = model_name
             return HttpResponseRedirect('/generate-object-from-model')
 
-
 def generateObjectFromDynamicModel(request):
     model_name = request.session["model_name"]
     this_model_schema = ModelSchema.objects.get(name=model_name)
@@ -604,11 +613,9 @@ def generateObjectFromDynamicModel(request):
     assert instance.pk is not None
     return HttpResponse("<html><body>" + str(instance.pk) + "</body></html>")
 
-
 class viewAllModels(ListView):
         model = ModelSchema
         template_name = 'imagelabeling/dynamic_models.html'
-
 
 def dynamic_model_detail(request, model_id):
     try:

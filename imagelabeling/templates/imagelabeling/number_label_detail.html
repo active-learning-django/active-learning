@@ -1,0 +1,40 @@
+{%  extends "imagelabeling/base.html" %}
+
+{% block headingtitle %} Number Label {% endblock %}
+
+{% block content %}
+        <h1>Model: {{ ml_model.title }}</h1>
+        <h2>Image: {{ image.title }}</h2>
+        <div class="row">
+            <div class="col-md-8">
+                <img src="{{ image.image_file.url}}" class="img-fluid" alt="{{ image.title }}">
+            </div>
+        </div>
+
+        <form action="{% url 'vote' image.id %}" method="post">
+            {% csrf_token %}
+            <input type="radio" name="choice" id="zero_votes" value=0>
+            <label for="zero_votes">Normal</label><br>
+            <input type="radio" name="choice" id="one_votes" value=1>
+            <label for="one_votes">Abnormal</label><br>
+            <input type="radio" name="choice" id="unknown_votes" value="Unknown">
+            <label for="unknown_votes">Unknown</label><br>
+            <input type="submit" value="Vote">
+        </form>
+            <p>User Estimate: {{ image.user_score }}</p>
+            <p>Zero Votes: {{ image.one_votes }}</p>
+            <p>One Votes: {{ image.zero_votes }}</p>
+            <p>Two Votes: {{ image.two_votes }}</p>
+            <p>Three Votes: {{ image.three_votes }}</p>
+            <p>Four Votes: {{ image.four_votes }}</p>
+            <p>Five Votes: {{ image.five_votes }}</p>
+            <p>Six Votes: {{ image.six_votes }}</p>
+            <p>Seven Votes: {{ image.seven_votes }}</p>
+            <p>Eight Votes: {{ image.eight_votes }}</p>
+            <p>Nine Votes: {{ image.nine_votes }}</p>
+            <p>Model's Probability (here for testing): {{ image.model_probability }}</p>
+{% endblock %}
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js" integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em" crossorigin="anonymous"></script>
+</body>
