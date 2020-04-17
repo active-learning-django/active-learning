@@ -21,6 +21,11 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, LinearSVC, NuSVC
 from sklearn.ensemble import RandomForestClassifier
 
+# multilabel classification stuff
+from sklearn.svm import SVC
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.preprocessing import LabelBinarizer
+
 # classification report for when we use model on test set
 from sklearn.metrics import classification_report
 
@@ -55,11 +60,16 @@ class ModelOperationsNumbers:
         # we create our test and training sets
 
         # set baseline then randomforest classifier
-        classifier = RandomForestClassifier()
-        model = classifier.fit(X_train, y_train)
-        print("model score: %.3f" % model.score(X_test, y_test))
+        #classifier = RandomForestClassifier()
+        #model = classifier.fit(X_train, y_train)
 
+
+        # the classifier is fit on a 1d array of multiclass labels and
+        # the predict() method therefore provides corresponding multiclass predictions.
+        classifier = OneVsRestClassifier(estimator=SVC(random_state=0))
+        model = classifier.fit(X_train, y_train)
         y_pred_best = model.predict(X_test)
+        print("model score: %.3f" % model.score(X_test, y_test))
         print(classification_report(y_test, y_pred_best))
 
         # now need to figure out how to save this to the database and associate
@@ -74,23 +84,25 @@ class ModelOperationsNumbers:
     def process_images(self, ml_model_name, export_file_name, label):
         # check if there's a directory first because the zip file module functionality
         data_dir = Path('./media/ml_model_images/' + ml_model_name)
+        categories = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-        # get the 0 through 9 digits
-        zero_cases = data_dir.glob('**/0_*.jpeg')
-        one_cases = data_dir.glob('**/1_*.jpeg')
-        two_cases = data_dir.glob('**/2_*.jpeg')
-        three_cases = data_dir.glob('**/3_*.jpeg')
-        four_cases = data_dir.glob('**/4_*.jpeg')
-        five_cases = data_dir.glob('**/5_*.jpeg')
-        six_cases = data_dir.glob('**/6_*.jpeg')
-        seven_cases = data_dir.glob('**/7_*.jpeg')
-        eight_cases = data_dir.glob('**/8_*.jpeg')
-        nine_cases = data_dir.glob('**/9_*.jpeg')
+        # get the 0 through 9 digit images
+        zero_cases = data_dir.glob('**/0_*.jpg')
+        one_cases = data_dir.glob('**/1_*.jpg')
+        two_cases = data_dir.glob('**/2_*.jpg')
+        three_cases = data_dir.glob('**/3_*.jpg')
+        four_cases = data_dir.glob('**/4_*.jpg')
+        five_cases = data_dir.glob('**/5_*.jpg')
+        six_cases = data_dir.glob('**/6_*.jpg')
+        seven_cases = data_dir.glob('**/7_*.jpg')
+        eight_cases = data_dir.glob('**/8_*.jpg')
+        nine_cases = data_dir.glob('**/9_*.jpg')
         data = []
 
         # Go through all the normal cases. The label for these cases will be 0
         if label:
             for img in zero_cases:
+                print("zero cases")
                 imgx = cv2.imread(str(img))
                 if imgx.shape[2] == 3:
                     data.append((img, 0))
@@ -104,44 +116,44 @@ class ModelOperationsNumbers:
             for img in two_cases:
                 imgx = cv2.imread(str(img))
                 if imgx.shape[2] == 3:
-                    data.append((img, 0))
+                    data.append((img, 2))
 
             # Go through all the abnormal cases. The label for these cases will be 1
             for img in three_cases:
                 imgx = cv2.imread(str(img))
                 if imgx.shape[2] == 3:
-                    data.append((img, 1))
+                    data.append((img, 3))
 
             for img in four_cases:
                 imgx = cv2.imread(str(img))
                 if imgx.shape[2] == 3:
-                    data.append((img, 0))
+                    data.append((img, 4))
 
             # Go through all the abnormal cases. The label for these cases will be 1
             for img in five_cases:
                 imgx = cv2.imread(str(img))
                 if imgx.shape[2] == 3:
-                    data.append((img, 1))
+                    data.append((img, 5))
 
             for img in six_cases:
                 imgx = cv2.imread(str(img))
                 if imgx.shape[2] == 3:
-                    data.append((img, 1))
+                    data.append((img, 6))
 
             for img in seven_cases:
                 imgx = cv2.imread(str(img))
                 if imgx.shape[2] == 3:
-                    data.append((img, 1))
+                    data.append((img, 7))
 
             for img in eight_cases:
                 imgx = cv2.imread(str(img))
                 if imgx.shape[2] == 3:
-                    data.append((img, 1))
+                    data.append((img, 8))
 
             for img in nine_cases:
                 imgx = cv2.imread(str(img))
                 if imgx.shape[2] == 3:
-                    data.append((img, 1))
+                    data.append((img, 9))
 
 
         # if we're not labeling it, return dataframe of image features from when we trained it
@@ -169,7 +181,7 @@ class ModelOperationsNumbers:
         df = pd.DataFrame(fc_features, columns=['X' + str(i) for i in range(fc_features.shape[1])], index=None)
         final_data = pd.concat([df, data], axis=1)
         final_data['image'] = final_data['image'].astype(str)
-        final_data.to_csv(export_file_name,index = False)
+        final_data.to_csv(export_file_name, index=False)
         # return final_data
         print(final_data.head(10))
         # now need to train the model based on the featurized images

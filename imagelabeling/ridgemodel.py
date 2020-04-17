@@ -4,6 +4,9 @@ from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import RidgeCV
 
+from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import LabelBinarizer
+
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 from sklearn.externals import joblib
@@ -17,7 +20,6 @@ class Calculation:
         data['probability'] = 0
         data.dropna(inplace=True)
         # data.replace('',np.nan, regex=True)
-
         return data
 
     def ridge_regression(self):
@@ -49,7 +51,7 @@ class Calculation:
         # #save model to Joblib Module
         joblib_file = "joblib_model.pkl"
         joblib.dump(ridge_refit, joblib_file)
-        #
+
         # # Load from file
         # joblib_model = joblib.load(joblib_file)
 

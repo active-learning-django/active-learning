@@ -6,6 +6,8 @@
     {% block content %}
         <h1 class="h2">{% block title %} Choose a Model {% endblock %}</h1>
         <p><a href="/post">Or create a new model &raquo;</a></p>
+        <p><a class="py-2 d-none d-md-inline-block" href="/create-numbers-model">Create Numbers Model</a></p>
+
         <ul>
           {% for ml_model in object_list %}
               <div class="row">

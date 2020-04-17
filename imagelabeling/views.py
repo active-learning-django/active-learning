@@ -3,6 +3,7 @@ from django.http import HttpResponse
 import csv
 from .test_skikit import Test_Skikit
 from .model_operations import ModelOperations
+from .model_operations_numbers import ModelOperationsNumbers
 
 # get all models
 from django.db import models
@@ -20,14 +21,15 @@ from zipfile import *
 
 # get the forms
 from .forms import ImageLabelForm, CreateMachineLearningModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm
-from .models import ImageLabel, MachineLearningModel, ModelSchema, FieldSchema
+from .models import ImageLabel, MachineLearningModel, ModelSchema, FieldSchema, NumberLabel
 from django.shortcuts import get_object_or_404, render
 
 # ml stuff
 import pandas as pd
 
-
 from .ridgemodel import Calculation
+from .ridgemodel_multiclass import Calculation as CalculationMultiClass
+
 
 from pylab import *
 import io, urllib, base64
@@ -43,7 +45,7 @@ class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
-def SVMTuning(request,ml_model_id):
+def SVMTuning(request, ml_model_id):
     if request.method == "POST":
         form = GammaForm(request.POST)
         form2 = SVMKernel(request.POST)
@@ -99,6 +101,33 @@ def CalculateProbability(request, ml_model_id):
             args = {'image': uri1, 'form': form_class}
 
             return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
+
+
+def CalculateProbabilityNumbers(request, ml_model_id):
+    # get name of model we're running analysis on
+    try:
+        ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
+    except MachineLearningModel.DoesNotExist:
+        raise Http404("Model does not exist")
+
+    path = 'final_data_test_' + ml_model.title + '.csv'
+    #path = '/Users/maggie/Desktop/active-learning/large_data.csv'
+    firstdf = CalculationMultiClass.readCSV(path)
+    count = 0
+
+    if request.method == "GET":
+
+            rid_result = CalculationMultiClass.ridge_regression(firstdf)
+            concatedDF = CalculationMultiClass.concateData(rid_result)
+            final = CalculationMultiClass.ridge_regression(concatedDF)
+
+            print("       ")
+            print(len(final['probability']))
+            print("          ")
+
+            CalculationMultiClass.outputCSV(final, ml_model.title)
+            CalculationMultiClass.outputJSON(final, ml_model.title)
+            return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions-numbers')
 
 def RenderGraph(request):
     return render(request, 'imagelabeling/graph.html')
@@ -213,6 +242,29 @@ def CreatePostView(request):
                   {'CreateMachineLearningModelForm': CreateMachineLearningModelForm})
 
 
+def CreateNumbersModelView(request):
+    if request.method == 'POST':
+
+        createMLModelForm = CreateMachineLearningModelForm(request.POST)
+
+        if createMLModelForm.is_valid():
+            create_model_form = createMLModelForm.save(commit=False)
+            create_model_form.title = request.POST.get('title')
+            create_model_form.save()
+
+            # parse the zip file and create imageLabel objects
+            print("about to handle files")
+            # after that's done, we can train the model
+            # redirect to model detail page
+            return HttpResponseRedirect('/model/' + str(create_model_form.id) + '/upload-numbers')
+        else:
+            print(createMLModelForm.errors)
+    else:
+        createMLModelForm = CreateMachineLearningModelForm()
+    return render(request, 'imagelabeling/post.html',
+                  {'CreateMachineLearningModelForm': CreateMachineLearningModelForm})
+
+
 def handle_uploaded_file(model, f):
     print("handling zip file")
     with ZipFile(f) as zip_file:
@@ -245,6 +297,36 @@ def bulk_upload_view(request, ml_model_id):
     return render(request, 'imagelabeling/bulk_upload_form.html',
                   {'BulkUploadForm': form, 'ml_model': ml_model})
 
+def bulk_upload_view_number(request, ml_model_id):
+    try:
+        ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
+    except MachineLearningModel.DoesNotExist:
+        raise Http404("Model does not exist")
+    if request.method == 'POST':
+        form = ImageBulkUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            handle_uploaded_file_number(ml_model, request.FILES['bulk_upload'])
+            return HttpResponseRedirect('/model/' + str(ml_model_id) + '/train-numbers')
+    else:
+        form = ImageBulkUploadForm()
+    return render(request, 'imagelabeling/bulk_upload_form.html',
+                  {'BulkUploadForm': form, 'ml_model': ml_model})
+
+def handle_uploaded_file_number(model, f):
+    print("handling zip file")
+    with ZipFile(f) as zip_file:
+        # get the list of files
+        names = zip_file.namelist()
+        print("names")
+        print(names)
+        # handle your files as you need. You can read the file with:
+        for name in names:
+            image_file = zip_file.extract(name, "media/ml_model_images/" + model.title + "/")
+            # hacky but need to reassign so correct path is assigned
+            image_file = "ml_model_images/" + model.title + "/" + name
+            photo = NumberLabel(machine_learning_model=model, image_file=image_file, title=name)
+            photo.save()
+            print("name again")
 
 def ml_model_detail(request, ml_model_id):
     try:
@@ -373,7 +455,7 @@ def voteNumbers(request, image_id):
         selected_choice += 1
         image.unknown_votes = selected_choice
 
-    # need to change this since there's 9 cases now
+    # need to change this since there's 9 cases for this view
     if image.one_votes + image.zero_votes != 0:
         image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
         # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
@@ -392,6 +474,13 @@ def trainModel(request, ml_model_id):
     # change from the multithreaded solution since that might be breaking
     t.train_model(ml_model.title)
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/probability')
+
+def trainNumbersModel(request, ml_model_id):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    t = ModelOperationsNumbers()
+    # change from the multithreaded solution since that might be breaking
+    t.train_model(ml_model.title)
+    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/probability-numbers')
 
 
 # update image_label object with classification and probability
@@ -412,18 +501,25 @@ def updateImagesWithModelPrediction(request, ml_model_id):
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/visualization')
 
 
-# want to get all the image labels for this model
-# then we want to compare how the users labeled the model,
-# to how the model predicts these labels
-# so we can double check them, pretty much
-# def visualization(request, ml_model_id):
-#     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
-#     images = ml_model.imagelabel_set.all()
-#     images_json = serializers.serialize('json', images)
-#     # so from each image, we need the adjusted prediction number by the model
-#     # then the number given by the labelers
-#     html = "<html><body>Visualization will go here!</body></html>"
-#     return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
+# TODO: Revise this to work for numbers/digits dataset
+def updateNumbersImagesWithModelPrediction(request, ml_model_id):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    images = ml_model.numberlabel_set.all()
+    df = pd.read_csv('final_data_test_' + ml_model.title + '.csv')
+    for image in images:
+        title = "media/ml_model_images/" + ml_model.title + "/" + image.title
+        entry = df.loc[df['image'] == title]
+
+        # check for broken image labels or duplicates, needs to be 1
+        if len(entry) > 1:
+            image.model_classification = entry["probability"].iloc[0]
+            image.user_classification = entry["label"].iloc[0]
+            image.save()
+        else:
+            image.model_classification = entry["probability"]
+            image.user_classification = entry["label"]
+            image.save()
+    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/numbers-visualization')
 
 def visualization(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
@@ -432,6 +528,15 @@ def visualization(request, ml_model_id):
     # so from each image, we need the adjusted prediction number by the model
     # then the number given by the labelers
     return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
+
+
+def numbers_visualization(request, ml_model_id):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    images = ml_model.numberlabel_set.all()
+    images_json = serializers.serialize('json', images)
+    # so from each image, we need the adjusted prediction number by the model
+    # then the number given by the labelers
+    return render(request, 'imagelabeling/numbers_visualizations.html', {'images': images_json, 'ml_model': ml_model})
 
 
 def testSkikit(request, ml_model_id):

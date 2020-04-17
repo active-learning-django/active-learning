@@ -56,20 +56,21 @@ class ImageLabel(models.Model):
 
 class NumberLabel(models.Model):
     label_option = (
-        ("0", "0"),
-        ("1", "1"),
-        ("2", "2"),
-        ("3", "3"),
-        ("4", "4"),
-        ("5", "5"),
-        ("6", "6"),
-        ("7", "7"),
-        ("8", "8"),
-        ("9", "9"),
+        (0, 0),
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+        (5, 5),
+        (6, 6),
+        (7, 7),
+        (8, 8),
+        (9, 9),
         ("Unknown", "Unknown"),
     )
 
     title = models.CharField(max_length=100)
+    user_classification = models.CharField(max_length=100, choices=label_option)
     model_classification = models.CharField(max_length=100, choices=label_option)
     user_score = models.FloatField(default=0.5)
     adjusted_user_score = models.FloatField(default=0)
