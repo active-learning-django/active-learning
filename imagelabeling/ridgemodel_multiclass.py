@@ -9,6 +9,7 @@ from sklearn.linear_model import RidgeCV
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.multiclass import OneVsOneClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import LinearSVC
 
 from sklearn.metrics import roc_curve, auc
@@ -33,9 +34,9 @@ class Calculation:
 
         # actual values of labels
         y = self['label'].values
-        print("y")
         for i in y:
             print(i)
+
 
         classifications = OneVsOneClassifier(LinearSVC(random_state=0)).fit(X, y).predict(X)
         print("classifications ===================")
@@ -44,44 +45,36 @@ class Calculation:
         # this is the multiclass part
         # https://stackoverflow.com/questions/61222686/scikit-learns-ridge-clasifiers-working-for-multi-class-not-clear
 
-        # split train_test
-        train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=0)
-        # stratify = y is used when data is not enough or biased
-
-        # find best alpha
-        alpha_list = 10 ** np.linspace(2, -5, 22) * 0.5
-
-        # run model with all alpha
-        ridgecv = RidgeCV(alphas=alpha_list, scoring='neg_mean_squared_error', normalize=True)
-        ridgecv.fit(train_X, train_y)
+        # probability result
+        self['probability'] = classifications
 
 
-        # the best shrinkage
-        best_alpha = ridgecv.alpha_
 
-        # the best model
-        ridge_refit = Ridge(alpha=best_alpha, normalize=True)
-        ridge_refit.fit(train_X, train_y)
-        ridge_refit.predict(test_X)
+        # result = [data, data['probability'], data['dif'],score]
 
-        # #save model to Joblib Module
-        joblib_file = "joblib_model.pkl"
-        joblib.dump(ridge_refit, joblib_file)
+        return self
 
-        # # Load from file
-        # joblib_model = joblib.load(joblib_file)
+    def readConfusionMatrix(self):
 
-        # run best model with a X data
-        prob = ridge_refit.predict(X)
+        X = self.drop(['label', "image", 'dif', 'probability'], axis=1)
 
-        # prob = joblib_model.predict(X)
-        # print(prob)
-        score = ridge_refit.score(X, y)
-        # score = joblib_model.score(X, y)
-        # print("R^2 score: ", score)
+        # actual values of labels
+        y = self['label'].values
+        for i in y:
+            print(i)
+
+
+        classifications = OneVsOneClassifier(LinearSVC(random_state=0)).fit(X, y).predict(X)
+        print("classifications ===================")
+        for i in classifications:
+            print(i)
+        # this is the multiclass part
+        # https://stackoverflow.com/questions/61222686/scikit-learns-ridge-clasifiers-working-for-multi-class-not-clear
 
         # probability result
         self['probability'] = classifications
+
+
 
         # result = [data, data['probability'], data['dif'],score]
 
@@ -111,7 +104,7 @@ class Calculation:
 
     def outputCSV(self, model_name):
         df = pd.DataFrame(self)
-        df.to_csv('final_data_test_' + model_name + '.csv', index=False)
+        df.to_csv('final_data_' + model_name + '.csv', index=False)
 
         return df
 

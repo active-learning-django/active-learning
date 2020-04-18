@@ -25,6 +25,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import LabelBinarizer
+from sklearn.multiclass import OneVsOneClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import confusion_matrix
 
 # classification report for when we use model on test set
 from sklearn.metrics import classification_report
@@ -50,7 +53,7 @@ class ModelOperationsNumbers:
     def train_model(self, model_name):
         print("training model " + model_name)
 
-        final_data = self.process_images(model_name, 'final_data_test_' + model_name + '.csv', 1)
+        final_data = self.process_images(model_name, 'final_data_' + model_name + '.csv', 1)
 
         X_train, X_test, y_train, y_test = train_test_split(final_data.drop('label', axis=1), final_data['label'], test_size=0.20, random_state=0)
 
@@ -66,11 +69,13 @@ class ModelOperationsNumbers:
 
         # the classifier is fit on a 1d array of multiclass labels and
         # the predict() method therefore provides corresponding multiclass predictions.
-        classifier = OneVsRestClassifier(estimator=SVC(random_state=0))
-        model = classifier.fit(X_train, y_train)
-        y_pred_best = model.predict(X_test)
-        print("model score: %.3f" % model.score(X_test, y_test))
-        print(classification_report(y_test, y_pred_best))
+        clf = DecisionTreeClassifier().fit(X_train, y_train)
+        pred = clf.predict(X_test)
+        print(pred)
+        cm = confusion_matrix(y_test, pred)
+        df = pd.DataFrame(cm)
+        print(df)
+        df.to_csv('./media/final_data_' + model_name + '_probabilities.csv', index=False)
 
         # now need to figure out how to save this to the database and associate
         # with the images on the site
@@ -78,7 +83,7 @@ class ModelOperationsNumbers:
         # now also check the unlabeled images and figure assign what they are
 
         # for now, just dump the model into a file, if model.joblib does not exist
-        joblib.dump(model, 'model_joblibs/model_' + model_name + '.joblib')
+        joblib.dump(clf, 'model_joblibs/model_' + model_name + '.joblib')
         K.clear_session()
 
     def process_images(self, ml_model_name, export_file_name, label):
@@ -193,7 +198,7 @@ class ModelOperationsNumbers:
     # and save to the corresponding image_label in database
     def predict_with_model(self, model_name):
         print("Predicting")
-        final_data = self.process_images(model_name, 'final_data_test_' + model_name + '.csv', 0)
+        final_data = self.process_images(model_name, 'final_data_' + model_name + '.csv', 0)
         K.clear_session()
         model = joblib.load('model_joblibs/model_' + model_name + '.joblib')
 

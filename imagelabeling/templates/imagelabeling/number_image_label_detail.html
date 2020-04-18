@@ -37,7 +37,7 @@
             <label for="eight_votes">eight</label><br>
             <input type="radio" name="choice" id="nine_votes" value=9>
             <label for="nine_votes">nine</label><br>
-                    <input type="submit" value="Vote">
+            <input type="submit" value="Vote">
         </form>
             <p>User Estimate: {{ image.user_score }}</p>
             <p>Zero Choices: {{ image.zero_votes }}</p>
@@ -52,6 +52,8 @@
             <p>Nine Choices: {{ image.nine_votes }}</p>
             <p>"Unknown" Choices: {{ image.unknown_votes }}</p>
             <p>Model's Probability (here for testing): {{ image.model_probability }}</p>
+            <p>User Classification: {{ image.user_classification }}</p>
+            <p>Model Classification: {{ image.model_classification }}</p>
 {% endblock %}
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>

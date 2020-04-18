@@ -110,9 +110,13 @@ def CalculateProbabilityNumbers(request, ml_model_id):
     except MachineLearningNumbersModel.DoesNotExist:
         raise Http404("Model does not exist")
 
-    path = 'final_data_test_' + ml_model.title + '.csv'
+    path = 'final_data_' + ml_model.title + '.csv'
+
     #path = '/Users/maggie/Desktop/active-learning/large_data.csv'
     firstdf = CalculationMultiClass.readCSV(path)
+
+
+
     count = 0
 
     if request.method == "GET":
@@ -241,6 +245,7 @@ def CreatePostView(request):
     return render(request, 'imagelabeling/post.html',
                   {'CreateMachineLearningModelForm': CreateMachineLearningModelForm})
 
+
 def CreateNumbersModelView(request):
     if request.method == 'POST':
 
@@ -263,6 +268,7 @@ def CreateNumbersModelView(request):
     return render(request, 'imagelabeling/post.html',
                   {'CreateMachineLearningModelForm': CreateMachineLearningNumbersModelForm})
 
+
 def handle_uploaded_file(model, f):
     print("handling zip file")
     with ZipFile(f) as zip_file:
@@ -278,6 +284,7 @@ def handle_uploaded_file(model, f):
             photo = ImageLabel(machine_learning_model=model, image_file=image_file, title=name)
             photo.save()
             print("name again")
+
 
 def bulk_upload_view(request, ml_model_id):
     try:
@@ -482,7 +489,7 @@ def voteNumbers(request, image_id):
         image.user_score = 0.5
         image.adjusted_user_score = 0
     image.save()
-    return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
+    return HttpResponseRedirect('/model/' + str(ml_id) + '/numbers-visualization')
 
 
 # this trains the model once, then should redirect to iteration page i think
@@ -523,7 +530,7 @@ def updateImagesWithModelPrediction(request, ml_model_id):
 def updateNumbersImagesWithModelPrediction(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
     images = ml_model.numberlabel_set.all()
-    df = pd.read_csv('final_data_test_' + ml_model.title + '.csv')
+    df = pd.read_csv('final_data_' + ml_model.title + '.csv')
     for image in images:
         title = "media/ml_model_images/" + ml_model.title + "/" + image.title
         entry = df.loc[df['image'] == title]
@@ -556,6 +563,18 @@ def numbers_visualization(request, ml_model_id):
     # then the number given by the labelers
     return render(request, 'imagelabeling/numbers_visualizations.html', {'images': images_json, 'ml_model': ml_model})
 
+def numbers_visualization_2(request, ml_model_id):
+    ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
+    images = ml_model.numberlabel_set.all()
+    images_json = serializers.serialize('json', images)
+    # so from each image, we need the adjusted prediction number by the model
+    # then the number given by the labelers
+    cm_path = './media/final_data_' + ml_model.title + '_probabilities.csv'
+    cm = CalculationMultiClass.readCSV(cm_path)
+    print(type(cm))
+    cm = cm.drop(labels={"dif", "probability"}, axis=1)
+    data = cm.to_dict()
+    return render(request, 'imagelabeling/number-visualizations-2.html', {'images': images_json, 'ml_model': ml_model, 'cm': data})
 
 def testSkikit(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)

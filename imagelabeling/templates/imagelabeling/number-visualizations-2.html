@@ -1,0 +1,196 @@
+{%  extends "imagelabeling/base.html" %}
+{% block content %}
+<h1 class="h2">Model: {{ ml_model.title }}</h1>
+<div id="my_dataviz"></div>
+<script src="https://d3js.org/d3.v4.js"></script>
+<script>
+let count = 50;
+/* load in images information, use d3 */
+    data_from_django = {{ images|safe }};
+    cm_from_django = {{ cm|safe }};
+    ml_model_title = "{{ ml_model.title|safe }}"
+    /* widget.init(data_from_django); */
+
+//-----------------------DATA PREPARATION------------------------//
+let final_data = [];
+
+// do 100 for now, full data crashes
+for (let i = 0; i < 10; i++) {
+    let d = data_from_django[i];
+    let modified_object = {};
+    modified_object.id = d.pk;
+    modified_object.model_score = d.fields.model_classification;
+    // modified_object.model_probability = d.fields.model_probability;
+    modified_object.user_score = d.fields.user_classification;
+    modified_object.title= d.fields.title;
+    modified_object.pk = d.pk;
+    final_data.push(modified_object);
+}
+console.log(final_data);
+console.log("CM")
+console.log(cm_from_django)
+
+// create matrix
+let userToModelMatrix = [];
+for (let i = 0; i < 100; i++) {
+    let innerArray = [];
+    for (let j = 0; j <  10; j++) {
+        innerArray[j] = 0;
+    }
+    userToModelMatrix[i] = innerArray;
+}
+
+// NaN is a number
+for (let i = 0; i < final_data.length; i++) {
+    let objectToCheck = final_data[i];
+    const modelScore = parseInt(objectToCheck.model_score);
+    const userScore = parseInt(objectToCheck.user_score);
+    if (!isNaN(userScore) && !isNaN(modelScore)) {
+        let count = userToModelMatrix[modelScore][userScore];
+        count++;
+        userToModelMatrix[modelScore][userScore] = count;
+    }
+}
+console.log(userToModelMatrix);
+
+
+//------------------------SVG PREPARATION------------------------//
+/* Referenced the following scatterplot resources:
+
+https://observablehq.com/@d3/scatterplot-matrix
+https://bl.ocks.org/Fil/6d9de24b31cb870fed2e6178a120b17d
+
+ */
+
+// set the dimensions and margins of the graph
+var margin = {top: 30, right: 30, bottom: 30, left: 30},
+  width = 450 - margin.left - margin.right,
+  height = 450 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+.append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+.append("g")
+  .attr("transform",
+        "translate(" + margin.left + "," + margin.top + ")");
+
+// Labels of row and columns
+var myGroups = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+var myVars = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+// Build X scales and axis:
+var x = d3.scaleBand()
+  .range([ 0, width ])
+  .domain(myGroups)
+  .padding(0.01);
+svg.append("g")
+  .attr("transform", "translate(0," + height + ")")
+  .call(d3.axisBottom(x))
+
+// Build X scales and axis:
+var y = d3.scaleBand()
+  .range([ height, 0 ])
+  .domain(myVars)
+  .padding(0.01);
+svg.append("g")
+  .call(d3.axisLeft(y));
+
+// Build color scale
+
+
+let max = 0;
+// read the data a different way
+d3.csv('../../media/final_data_' + ml_model_title + '_probabilities.csv', function ( response ) {
+    console.log(response)
+
+    let coords = []
+    let data = response.map(function (item, index) {
+        console.log(item)
+        let items = Object.entries(item)
+        console.log("items")
+        console.log(items)
+        for (let i = 0; i < 10; i++) {
+            let newItem = {};
+            newItem.x = index;
+            newItem.y = i;
+            if (items[i] !== undefined){
+                newItem.count = items[i][1]
+                if (newItem.count > max) {
+                    max = newItem.count
+                }
+            }
+            coords.push(newItem)
+        }
+    });
+    let myColor = d3.scaleLinear()
+      .range(["white", "#69b3a2"])
+      .domain([0,max])
+    console.log(coords)
+      svg.selectAll()
+      .data(coords, function(d) {return d.count})
+      .enter()
+      .append("rect")
+      .attr("x", function(d) { return x(d.x) })
+      .attr("y", function(d) { return y(d.y) })
+      .attr("width", x.bandwidth() )
+      .attr("height", y.bandwidth() )
+      .style("fill", function(d) { return myColor(d.count)} )
+
+})
+
+
+
+
+//Read the data
+{#function buildVis(data) {#}
+    {#let it = 0;#}
+    {#let objectData = (Object.entries(data))#}
+    {#console.log(objectData)#}
+    {#    for (row in objectData) {#}
+    {#        console.log("Type of row")#}
+    {#        console.log(typeof(row))#}
+    {#        console.log("object data of row")#}
+    {#        console.log(objectData[row])#}
+    {#        console.log("type of object data of row is object")#}
+    {#        console.log(typeof(objectData[row]))#}
+    {#        console.log("values of object data of row")#}
+    {#        let rowObjectValues = objectData[row][1]#}
+    {#        console.log(rowObjectValues)#}
+    {#        console.log(typeof(rowObjectValues))#}
+    {#        let rowObjectValuesValues = Object.values(rowObjectValues)#}
+    {#        console.log(rowObjectValuesValues)#}
+    {#        console.log("inedx 0 of Row Object values");#}
+    {#        console.log(rowObjectValuesValues[0])#}
+    {#        console.log("inedx 1 of Row Object values");#}
+    {#        console.log(rowObjectValuesValues[1])#}
+    {#        console.log("inedx 2 of Row Object values");#}
+    {#        console.log(rowObjectValuesValues[2])#}
+    {#        console.log("inedx 3 of Row Object values");#}
+    {#        console.log(rowObjectValuesValues[3])#}
+    {#        for (let j = 0; j < 10; j++) {#}
+    {#            console.log("x")#}
+    {#            console.log(it)#}
+    {#            console.log("y")#}
+    {#            console.log(j)#}
+    {#            svg.selectAll()#}
+    {#            .data(rowObjectValuesValues, function(d) {return d[it]+':'+d[j];})#}
+    {#            .enter()#}
+    {#            .append("rect")#}
+    {#            .attr("x", function(d) { return x(d[it]) })#}
+    {#            .attr("y", function(d) { return y(d[j]) })#}
+    {#            .attr("width",50)#}
+    {#            .attr("height",50)#}
+    {#            .style("fill", myColor(rowObjectValuesValues[j]))#}
+    {#        }#}
+    {#        it++;#}
+    {#    }#}
+
+{#}#}
+{##}
+{#buildVis(cm_from_django)#}
+
+
+</script>
+{%  endblock %}

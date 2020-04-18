@@ -51,7 +51,7 @@ class ImageLabel(models.Model):
     one_votes = models.IntegerField(default=0)
     zero_votes = models.IntegerField(default=0)
     unknown_votes = models.IntegerField(default=0)
-    machine_learning_model = models.ForeignKey(MachineLearningNumbersModel, on_delete=models.CASCADE)
+    machine_learning_model = models.ForeignKey(MachineLearningModel, on_delete=models.CASCADE)
     image_file = models.ImageField(upload_to=get_image_filename)
 
     def __str__(self):
@@ -92,7 +92,7 @@ class NumberLabel(models.Model):
     eight_votes = models.IntegerField(default=0)
     nine_votes = models.IntegerField(default=0)
     unknown_votes = models.IntegerField(default=0)
-    machine_learning_model = models.ForeignKey(MachineLearningModel, on_delete=models.CASCADE)
+    machine_learning_model = models.ForeignKey(MachineLearningNumbersModel, on_delete=models.CASCADE)
     image_file = models.ImageField(upload_to=get_image_filename)
 
 

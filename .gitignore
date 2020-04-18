@@ -20,3 +20,5 @@ media/images/LABELED/*
 media/ml_model_images/*
 final_data_test*
 output_*
+model_joblibs/*
+joblib_model.pkl
