@@ -63,9 +63,9 @@ https://bl.ocks.org/Fil/6d9de24b31cb870fed2e6178a120b17d
  */
 
 // set the dimensions and margins of the graph
-var margin = {top: 30, right: 30, bottom: 30, left: 30},
-  width = 450 - margin.left - margin.right,
-  height = 450 - margin.top - margin.bottom;
+var margin = {top: 40, right: 40, bottom: 80, left: 40},
+  width = 500 - margin.left - margin.right,
+  height = 540 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
 var svg = d3.select("#my_dataviz")
@@ -89,6 +89,14 @@ svg.append("g")
   .attr("transform", "translate(0," + height + ")")
   .call(d3.axisBottom(x))
 
+// text label for the x axis
+svg.append("text")
+  .attr("transform",
+        "translate(" + (width/2 - 10) + " ," +
+                       (height + margin.top + 20) + ")")
+  .style("text-anchor", "middle")
+  .text("Model Classification");
+
 // Build X scales and axis:
 var y = d3.scaleBand()
   .range([ height, 0 ])
@@ -96,6 +104,15 @@ var y = d3.scaleBand()
   .padding(0.01);
 svg.append("g")
   .call(d3.axisLeft(y));
+
+  // text label for the y axis
+svg.append("text")
+  .attr("transform", "rotate(-90)")
+  .attr("y", 0 - margin.left)
+  .attr("x",0 - (height / 2))
+  .attr("dy", "1em")
+  .style("text-anchor", "middle")
+  .text("User Classification");
 
 // Build color scale
 
@@ -131,12 +148,30 @@ d3.csv('../../media/final_data_' + ml_model_title + '_probabilities.csv', functi
       svg.selectAll()
       .data(coords, function(d) {return d.count})
       .enter()
+      .append("a")
+      .attr("xlink:href", function(d){ return "/numbers-model/"+ {{ ml_model.id }} + "/classification/" + d.x })
       .append("rect")
       .attr("x", function(d) { return x(d.x) })
       .attr("y", function(d) { return y(d.y) })
-      .attr("width", x.bandwidth() )
-      .attr("height", y.bandwidth() )
+      .attr("width", 40 )
+      .attr("height", 40 )
       .style("fill", function(d) { return myColor(d.count)} )
+         .on('mouseover', function(d, i) {
+          console.log("mouseover on", this);
+          // make the mouseover'd element
+          // bigger and red
+          d3.select(this)
+            .transition()
+            .duration(100)
+        })
+        .on('mouseout', function(d, i) {
+          console.log("mouseout", this);
+          // return the mouseover'd element
+          // to being smaller and black
+          d3.select(this)
+            .transition()
+            .duration(100)
+        })
 
 })
 

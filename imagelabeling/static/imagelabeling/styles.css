@@ -4,3 +4,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+rect:hover{
+    outline: 2px solid red;
+}

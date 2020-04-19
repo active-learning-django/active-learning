@@ -1,0 +1,19 @@
+{%  extends "imagelabeling/base.html" %}
+
+{% block content %}
+
+    <h1 class="h2">{{ ml_model.title }}</h1>
+    <p>{{ ml_model.classification_notes }}</p>
+        <h1 class="h2">Model cases for {{ ml_model_classification }}</h1>
+            <div class="row">
+              {% for image in images %}
+              <div class="col-lg-3 col-md-4 col-6">
+                <h2 class="h5 word-break">{{ image.title }}</h2>
+                <a href="/model/{{ ml_model.pk }}/number-label/{{ image.pk }}">
+                <img src="{{ image.image_file.url}}" class="img-fluid img-thumbnail" alt="{{ image.title }}">
+                </a>
+              </div>
+              {% endfor %}
+            </div>
+
+{% endblock %}

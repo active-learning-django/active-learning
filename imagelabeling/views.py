@@ -332,19 +332,19 @@ def handle_uploaded_file_number(model, f):
             photo.save()
             print("name again")
 
+# this trains the model once, then should redirect to iteration page i think
+def trainModel(request, ml_model_id):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    t = ModelOperations()
+    # change from the multithreaded solution since that might be breaking
+    t.train_model(ml_model.title)
+    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/probability')
+
 def ml_model_detail(request, ml_model_id):
     try:
         ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
         images = ml_model.imagelabel_set.all()
     except MachineLearningModel.DoesNotExist:
-        raise Http404("Model does not exist")
-    return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model, 'images': images})
-
-def ml_numbers_model_detail(request, ml_model_id):
-    try:
-        ml_model = MachineLearningNumbersModel.objects.get(pk=ml_model_id)
-        images = ml_model.imagelabel_set.all()
-    except MachineLearningNumbersModel.DoesNotExist:
         raise Http404("Model does not exist")
     return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model, 'images': images})
 
@@ -404,6 +404,40 @@ def vote(request, image_id):
         image.adjusted_user_score = 0
     image.save()
     return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
+
+# update image_label object with classification and probability
+def updateImagesWithModelPrediction(request, ml_model_id):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    images = ml_model.imagelabel_set.all()
+    df = pd.read_csv('final_data_test_' + ml_model.title + '.csv')
+    for image in images:
+        title = "media/ml_model_images/" + ml_model.title + "/" + image.title
+        entry = df.loc[df['image'] == title]
+
+        # check for broken image labels or duplicates, needs to be 1
+        if len(entry) == 1:
+            image.model_score = entry["label"]
+            image.model_difference = entry["dif"]
+            image.model_probability = entry["probability"]
+            image.save()
+    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/visualization')
+
+def visualization(request, ml_model_id):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    images = ml_model.imagelabel_set.all()
+    images_json = serializers.serialize('json', images)
+    # so from each image, we need the adjusted prediction number by the model
+    # then the number given by the labelers
+    return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
+
+
+def ml_numbers_model_detail(request, ml_model_id):
+    try:
+        ml_model = MachineLearningNumbersModel.objects.get(pk=ml_model_id)
+        images = ml_model.imagelabel_set.all()
+    except MachineLearningNumbersModel.DoesNotExist:
+        raise Http404("Model does not exist")
+    return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model, 'images': images})
 
 
 def numbers_image_label_detail(request, ml_model_id, numbers_image_id):
@@ -492,14 +526,6 @@ def voteNumbers(request, image_id):
     return HttpResponseRedirect('/model/' + str(ml_id) + '/numbers-visualization')
 
 
-# this trains the model once, then should redirect to iteration page i think
-def trainModel(request, ml_model_id):
-    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
-    t = ModelOperations()
-    # change from the multithreaded solution since that might be breaking
-    t.train_model(ml_model.title)
-    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/probability')
-
 def trainNumbersModel(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
     t = ModelOperationsNumbers()
@@ -508,25 +534,6 @@ def trainNumbersModel(request, ml_model_id):
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/probability-numbers')
 
 
-# update image_label object with classification and probability
-def updateImagesWithModelPrediction(request, ml_model_id):
-    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
-    images = ml_model.imagelabel_set.all()
-    df = pd.read_csv('final_data_test_' + ml_model.title + '.csv')
-    for image in images:
-        title = "media/ml_model_images/" + ml_model.title + "/" + image.title
-        entry = df.loc[df['image'] == title]
-
-        # check for broken image labels or duplicates, needs to be 1
-        if len(entry) == 1:
-            image.model_score = entry["label"]
-            image.model_difference = entry["dif"]
-            image.model_probability = entry["probability"]
-            image.save()
-    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/visualization')
-
-
-# TODO: Revise this to work for numbers/digits dataset
 def updateNumbersImagesWithModelPrediction(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
     images = ml_model.numberlabel_set.all()
@@ -546,14 +553,12 @@ def updateNumbersImagesWithModelPrediction(request, ml_model_id):
             image.save()
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/numbers-visualization')
 
-def visualization(request, ml_model_id):
-    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
-    images = ml_model.imagelabel_set.all()
-    images_json = serializers.serialize('json', images)
-    # so from each image, we need the adjusted prediction number by the model
-    # then the number given by the labelers
-    return render(request, 'imagelabeling/visualizations.html', {'images': images_json, 'ml_model': ml_model})
+def numbers_model_images_by_model_class(request, ml_model_id, ml_model_classification):
+    ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
+    images = ml_model.numberlabel_set.all().filter(model_classification=int(ml_model_classification))
 
+    return render(request, 'imagelabeling/numbers_model_classification.html',
+                  {'images': images, 'ml_model': ml_model, 'ml_model_classification': ml_model_classification})
 
 def numbers_visualization(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
@@ -561,7 +566,14 @@ def numbers_visualization(request, ml_model_id):
     images_json = serializers.serialize('json', images)
     # so from each image, we need the adjusted prediction number by the model
     # then the number given by the labelers
-    return render(request, 'imagelabeling/numbers_visualizations.html', {'images': images_json, 'ml_model': ml_model})
+    cm_path = './media/final_data_' + ml_model.title + '_probabilities.csv'
+    cm = CalculationMultiClass.readCSV(cm_path)
+    print(type(cm))
+    cm = cm.drop(labels={"dif", "probability"}, axis=1)
+    data = cm.to_dict()
+    return render(request, 'imagelabeling/number-visualizations-2.html',
+                  {'images': images_json, 'ml_model': ml_model, 'cm': data})
+
 
 def numbers_visualization_2(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
@@ -576,6 +588,7 @@ def numbers_visualization_2(request, ml_model_id):
     data = cm.to_dict()
     return render(request, 'imagelabeling/number-visualizations-2.html', {'images': images_json, 'ml_model': ml_model, 'cm': data})
 
+# used for testing
 def testSkikit(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     t = ModelOperations()
@@ -583,7 +596,6 @@ def testSkikit(request, ml_model_id):
 
     html = "<html><body>Testing the model against new data!</body></html>"
     return HttpResponse(html)
-
 
 ## all the below if for dynamic modeling which isn't fully implemented yet
 def generateAbstractModel(request):
@@ -631,7 +643,6 @@ def generateAbstractModel(request):
             request.session["model_name"] = model_name
             return HttpResponseRedirect('/generate-object-from-model')
 
-
 def generateObjectFromDynamicModel(request):
     model_name = request.session["model_name"]
     this_model_schema = ModelSchema.objects.get(name=model_name)
@@ -641,11 +652,9 @@ def generateObjectFromDynamicModel(request):
     assert instance.pk is not None
     return HttpResponse("<html><body>" + str(instance.pk) + "</body></html>")
 
-
 class viewAllModels(ListView):
         model = ModelSchema
         template_name = 'imagelabeling/dynamic_models.html'
-
 
 def dynamic_model_detail(request, model_id):
     try:
