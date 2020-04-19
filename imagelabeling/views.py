@@ -45,6 +45,15 @@ class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
+def labelDigitFeatures(request):
+    if request.method == "POST":
+        form = DigitForm(request.POST)
+    else:
+        form = DigitForm
+
+    # return HttpResponse("hello")
+    return render(request, 'imagelabeling/label_digit.html',{'form':form})
+
 def SVMTuning(request, ml_model_id):
     if request.method == "POST":
         form = GammaForm(request.POST)
