@@ -66,3 +66,18 @@ kerneloption = (
 class SVMKernel(forms.Form):
     field = forms.TypedChoiceField(label="Kernel",coerce=str,
                                    choices=kerneloption)
+
+class DigitForm(forms.Form):
+    total_digit = forms.CharField()
+    Oval = forms.CharField()
+    Stick = forms.CharField()
+    Swan = forms.CharField()
+    Butterfly = forms.CharField()
+    Flag = forms.CharField()
+    Hook = forms.CharField()
+    Combination_Lock = forms.CharField()
+    Boomerang = forms.CharField()
+    Snowman = forms.CharField()
+    Ballon_on_String = forms.CharField()
+    Acute_Angle = forms.CharField()
+    Right_Angle = forms.CharField()
