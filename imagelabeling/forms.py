@@ -77,10 +77,7 @@ class DigitFeatureForm(forms.Form):
     acute_Angle = forms.CharField()
     right_Angle = forms.CharField()
     curve = forms.CharField()
-    Boomerang = forms.CharField()
-    Snowman = forms.CharField()
-    Ballon_on_String = forms.CharField()
-
+   
 
 class NumShapeForm(forms.Form):
     selection = (
