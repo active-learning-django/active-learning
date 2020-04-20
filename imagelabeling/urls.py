@@ -18,6 +18,8 @@ urlpatterns = [
     path('model/<int:ml_model_id>/visualization', views.visualization, name='visualization'),
     path('model/<int:ml_model_id>/probability', views.CalculateProbability, name='show roc curve'),
     path('model/<int:ml_model_id>/svm', views.SVMTuning, name='parameter tunning for SVM'),
+    path('probability/', views.CalculateProbability, name='show roc curve'),
+
 
 
 
