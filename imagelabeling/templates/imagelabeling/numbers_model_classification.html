@@ -4,7 +4,13 @@
 
     <h1 class="h2">{{ ml_model.title }}</h1>
     <p>{{ ml_model.classification_notes }}</p>
-        <h1 class="h2">Model cases for {{ ml_model_classification }}</h1>
+        <h1 class="h2">Images model has classified as {{ ml_model_classification }}</h1>
+        <h2 class="h3">Characteristics of the images:</h2>
+        <ul>
+        <li>
+            Loops, etc.
+        </li>
+        </ul>
             <div class="row">
               {% for image in images %}
               <div class="col-lg-3 col-md-4 col-6">

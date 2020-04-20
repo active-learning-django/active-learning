@@ -2,6 +2,8 @@
 {% block content %}
 <h1 class="h2">Model: {{ ml_model.title }}</h1>
 <div id="my_dataviz"></div>
+
+<div id="model-table"></div>
 <script src="https://d3js.org/d3.v4.js"></script>
 <script>
 let count = 50;
@@ -149,7 +151,7 @@ d3.csv('../../media/final_data_' + ml_model_title + '_probabilities.csv', functi
       .data(coords, function(d) {return d.count})
       .enter()
       .append("a")
-      .attr("xlink:href", function(d){ return "/numbers-model/"+ {{ ml_model.id }} + "/classification/" + d.x })
+      .attr("xlink:href", function(d){ return "/numbers-model/"+ {{ ml_model.id }} + "/classification/" + d.x + "/user-classification/" + d.y })
       .append("rect")
       .attr("x", function(d) { return x(d.x) })
       .attr("y", function(d) { return y(d.y) })
@@ -171,58 +173,33 @@ d3.csv('../../media/final_data_' + ml_model_title + '_probabilities.csv', functi
           d3.select(this)
             .transition()
             .duration(100)
-        })
+        });
+    function buildTable() {
+        let tableHolder = document.getElementById("model-table");
+        let table = document.createElement("table");
 
-})
+        for (let i = 0; i < 10; i++) {
+            let tr = document.createElement('tr');
+            let td1 = document.createElement('td');
+            let td2 = document.createElement('td');
+
+            td1.innerHTML = "Model Classification " + i;
+            let link = document.createElement('a');
+            link.innerText = "Cases";
+            link.href= "/numbers-model/"+ {{ ml_model.id }} + "/classification/" + i;
+            td2.appendChild(link);
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            table.appendChild(tr);
+        }
+        tableHolder.appendChild(table)
+    }
+    buildTable()
+
+});
 
 
 
-
-//Read the data
-{#function buildVis(data) {#}
-    {#let it = 0;#}
-    {#let objectData = (Object.entries(data))#}
-    {#console.log(objectData)#}
-    {#    for (row in objectData) {#}
-    {#        console.log("Type of row")#}
-    {#        console.log(typeof(row))#}
-    {#        console.log("object data of row")#}
-    {#        console.log(objectData[row])#}
-    {#        console.log("type of object data of row is object")#}
-    {#        console.log(typeof(objectData[row]))#}
-    {#        console.log("values of object data of row")#}
-    {#        let rowObjectValues = objectData[row][1]#}
-    {#        console.log(rowObjectValues)#}
-    {#        console.log(typeof(rowObjectValues))#}
-    {#        let rowObjectValuesValues = Object.values(rowObjectValues)#}
-    {#        console.log(rowObjectValuesValues)#}
-    {#        console.log("inedx 0 of Row Object values");#}
-    {#        console.log(rowObjectValuesValues[0])#}
-    {#        console.log("inedx 1 of Row Object values");#}
-    {#        console.log(rowObjectValuesValues[1])#}
-    {#        console.log("inedx 2 of Row Object values");#}
-    {#        console.log(rowObjectValuesValues[2])#}
-    {#        console.log("inedx 3 of Row Object values");#}
-    {#        console.log(rowObjectValuesValues[3])#}
-    {#        for (let j = 0; j < 10; j++) {#}
-    {#            console.log("x")#}
-    {#            console.log(it)#}
-    {#            console.log("y")#}
-    {#            console.log(j)#}
-    {#            svg.selectAll()#}
-    {#            .data(rowObjectValuesValues, function(d) {return d[it]+':'+d[j];})#}
-    {#            .enter()#}
-    {#            .append("rect")#}
-    {#            .attr("x", function(d) { return x(d[it]) })#}
-    {#            .attr("y", function(d) { return y(d[j]) })#}
-    {#            .attr("width",50)#}
-    {#            .attr("height",50)#}
-    {#            .style("fill", myColor(rowObjectValuesValues[j]))#}
-    {#        }#}
-    {#        it++;#}
-    {#    }#}
-
-{#}#}
 {##}
 {#buildVis(cm_from_django)#}
 

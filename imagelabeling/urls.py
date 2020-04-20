@@ -28,6 +28,8 @@ urlpatterns = [
     path('model/<int:ml_model_id>/probability-numbers', views.CalculateProbabilityNumbers, name='show roc curve'),
     path('model/<int:ml_model_id>/run-predictions-numbers', views.updateNumbersImagesWithModelPrediction, name='update with predictions'),
     path('numbers-model/<int:ml_model_id>/classification/<int:ml_model_classification>', views.numbers_model_images_by_model_class, name='numbers_model_images_by_model_class'),
+    path('numbers-model/<int:ml_model_id>/classification/<int:ml_model_classification>/user-classification/<int:user_classification>',
+         views.numbers_model_images_by_model_class_user_class, name='numbers_model_images_by_model_class_user_class'),
     path('model/<int:ml_model_id>/numbers-visualizations-2', views.numbers_visualization_2, name='numbers visualization 2'),
     path('model/<int:ml_model_id>/numbers-visualization', views.numbers_visualization, name='numbers visualization'),
 

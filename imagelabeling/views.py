@@ -59,8 +59,6 @@ def SVMTuning(request, ml_model_id):
     return render(request, 'imagelabeling/svm_selection.html', {'form': form, 'form2':form2})
 
 
-
-
 # call this view right after this model is created
 def CalculateProbability(request, ml_model_id):
     # get name of model we're running analysis on
@@ -340,6 +338,7 @@ def trainModel(request, ml_model_id):
     t.train_model(ml_model.title)
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/probability')
 
+
 def ml_model_detail(request, ml_model_id):
     try:
         ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
@@ -421,6 +420,7 @@ def updateImagesWithModelPrediction(request, ml_model_id):
             image.model_probability = entry["probability"]
             image.save()
     return HttpResponseRedirect('/model/' + str(ml_model_id) + '/visualization')
+
 
 def visualization(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
@@ -556,6 +556,13 @@ def updateNumbersImagesWithModelPrediction(request, ml_model_id):
 def numbers_model_images_by_model_class(request, ml_model_id, ml_model_classification):
     ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
     images = ml_model.numberlabel_set.all().filter(model_classification=int(ml_model_classification))
+
+    return render(request, 'imagelabeling/numbers_model_classification.html',
+                  {'images': images, 'ml_model': ml_model, 'ml_model_classification': ml_model_classification})
+
+def numbers_model_images_by_model_class_user_class(request, ml_model_id, ml_model_classification, user_classification):
+    ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
+    images = ml_model.numberlabel_set.all().filter(model_classification=int(ml_model_classification), user_classification=int(user_classification))
 
     return render(request, 'imagelabeling/numbers_model_classification.html',
                   {'images': images, 'ml_model': ml_model, 'ml_model_classification': ml_model_classification})
