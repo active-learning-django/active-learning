@@ -20,7 +20,7 @@ from django.core import serializers
 from zipfile import *
 
 # get the forms
-from .forms import ImageLabelForm, CreateMachineLearningModelForm, CreateMachineLearningNumbersModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, CreateMachineLearningNumbersModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm, DigitForm
 from .models import ImageLabel, MachineLearningModel, MachineLearningNumbersModel, ModelSchema, FieldSchema, NumberLabel
 from django.shortcuts import get_object_or_404, render
 
@@ -44,6 +44,15 @@ from django.apps import apps
 class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
+
+def labelDigitFeatures(request):
+    if request.method == "POST":
+        form = DigitForm(request.POST)
+    else:
+        form = DigitForm
+
+    # return HttpResponse("hello")
+    return render(request, 'imagelabeling/label_digit.html',{'form':form})
 
 def SVMTuning(request, ml_model_id):
     if request.method == "POST":

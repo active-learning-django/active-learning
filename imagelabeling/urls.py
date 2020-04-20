@@ -20,6 +20,8 @@ urlpatterns = [
     path('model/<int:ml_model_id>/svm', views.SVMTuning, name='parameter tunning for SVM'),
 
 
+
+    path('digit/', views.labelDigitFeatures, name = 'label number features'),
     path('create-numbers-model', views.CreateNumbersModelView, name='create numbers model'),
     path('model/<int:ml_model_id>/number-label/<int:numbers_image_id>/', views.numbers_image_label_detail, name='detail'),
     path('label/<int:image_id>/vote-numbers', views.voteNumbers, name='voteNumbers'),
