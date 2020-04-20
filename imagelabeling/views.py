@@ -20,7 +20,7 @@ from django.core import serializers
 from zipfile import *
 
 # get the forms
-from .forms import ImageLabelForm, CreateMachineLearningModelForm, CreateMachineLearningNumbersModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm, DigitForm
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, CreateMachineLearningNumbersModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm, DigitFeatureForm, NumShapeForm
 from .models import ImageLabel, MachineLearningModel, MachineLearningNumbersModel, ModelSchema, FieldSchema, NumberLabel
 from django.shortcuts import get_object_or_404, render
 
@@ -45,14 +45,17 @@ class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
+
 def labelDigitFeatures(request):
     if request.method == "POST":
-        form = DigitForm(request.POST)
+        feature_form = DigitFeatureForm(request.POST)
+        shape_form = NumShapeForm(request.POST)
     else:
-        form = DigitForm
+        feature_form = DigitFeatureForm
+        shape_form = NumShapeForm
 
     # return HttpResponse("hello")
-    return render(request, 'imagelabeling/label_digit.html',{'form':form})
+    return render(request, 'imagelabeling/label_digit.html',{'feature_form':feature_form, 'shape_form':shape_form})
 
 def SVMTuning(request, ml_model_id):
     if request.method == "POST":
@@ -69,45 +72,69 @@ def SVMTuning(request, ml_model_id):
 
 
 # call this view right after this model is created
-def CalculateProbability(request, ml_model_id):
-    # get name of model we're running analysis on
-    try:
-        ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
-    except MachineLearningModel.DoesNotExist:
-        raise Http404("Model does not exist")
+def CalculateProbability(request):
 
-    path = 'final_data_test_' + ml_model.title + '.csv'
-    #path = '/Users/maggie/Desktop/active-learning/large_data.csv'
+    # get name of model we're running analysis on
+    # try:
+    #     ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
+    # except MachineLearningModel.DoesNotExist:
+    #     raise Http404("Model does not exist")
+
+    path = '/Users/maggie/Desktop/active-learning/final_data_test_xray.csv'
     firstdf = Calculation.readCSV(path)
     count = 0
 
     if request.method == "GET":
 
-            rid_result = Calculation.ridge_regression(firstdf)
-            concatedDF = Calculation.concateData(rid_result)
-            final = Calculation.ridge_regression(concatedDF)
+    # path = 'final_data_test_' + ml_model.title + '.csv'
+    # else:
 
-            print("       ")
-            print(len(final['probability']))
-            print("          ")
+        # final = Calculation.newridge(firstdf)
 
-            Calculation.outputCSV(final, ml_model.title)
-            Calculation.outputJSON(final, ml_model.title)
+        print("original", len(firstdf))
+
+        # if request.method == "GET":
+        # form_class = BooleanForm
+        # # print(form_class)
+
+        best_alpha = Calculation.best_lambda(firstdf)
+
+        rid_result = Calculation.ridge_regression(firstdf,best_alpha)
+
+        print("low diff", len(Calculation.low_diff(rid_result)))
+
+        concatedDF = Calculation.concateData(rid_result)
+        # final = Calculation.ridge_regression(concatedDF,best_alpha)
+        #
+        print("       ")
+        print("after concate", len(concatedDF['probability']))
+        print("          ")
+
+        #
+        Calculation.outputCSV(concatedDF)
+        # Calculation.outputCSV(final, ml_model.title)
+        # Calculation.outputJSON(final, ml_model.title)
+
+        # plt = final
+        plt = Calculation.ROC(concatedDF)
+        fig = plt.gcf()
+
+        buf1 = io.BytesIO()
+        fig.savefig(buf1, format='png')
+        buf1.seek(0)
+        string1 = base64.b64encode(buf1.read())
+        uri1 = urllib.parse.quote(string1)
+
+        return render(request, 'imagelabeling/graph.html', {'image': uri1})
 
 
-            plt = Calculation.ROC(final)
-            fig = plt.gcf()
 
-            buf1 = io.BytesIO()
-            fig.savefig(buf1, format='png')
-            buf1.seek(0)
-            string1 = base64.b64encode(buf1.read())
-            uri1 = urllib.parse.quote(string1)
 
-            form_class = BooleanForm
-            args = {'image': uri1, 'form': form_class}
 
-            return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
+
+            # return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
+
+
 
 
 def CalculateProbabilityNumbers(request, ml_model_id):
@@ -144,90 +171,6 @@ def RenderGraph(request):
     return render(request, 'imagelabeling/graph.html')
 
 
-# def IterationInputPage(request,ml_model_id):
-#
-#     if request.method == 'GET':
-#         form_class = BooleanForm
-#         template_name = 'imagelabeling/temp.html'
-#
-#         return render(request, 'imagelabeling/temp.html', {'form': form_class})
-
-    # elif request.method == "POST":
-        # form_class = NumOfIterationForm
-        # input = NumOfIterationForm(request.POST)
-        # form_class = BooleanForm
-        # input = BooleanForm(request.POST)
-        # if input.is_valid():
-            # text = input.cleaned_data['Iteration']
-            # print(type(text))
-            # if input == True:
-            # path = '/Users/maggie/Desktop/active-learning/final_data_test.csv'
-            #     path = '/Users/maggie/Desktop/active-learning/final_data_test_Test-951.csv'
-            #     firstdf = pd.read_csv(path)
-            #     firstdf.drop(['Unnamed: 0'], axis=1, inplace=True)
-            #     firstdf['dif'] = 0
-            #     firstdf['probability'] = 0
-            #
-            #
-            #     tempdf = firstdf
-            #     # for i in range(1, text+1):
-            #     df = Calculation.ridge_regression(tempdf)
-            #     final = Calculation.concateData(df)
-            #     #
-            #     #show ROC curve
-            #     prediction = final['probability']
-            #     actual = final['label'].values.reshape(-1, 1)
-            #
-            #     false_positive_rate, true_positive_rate, thresholds = roc_curve(actual, prediction)
-            #     roc_auc = auc(false_positive_rate, true_positive_rate)
-            #     plt.title('ROC curve for Ridge Regression Model')
-            #     plt.subplot(2,1,1)
-            #     plt.plot(false_positive_rate, true_positive_rate, 'b',
-            #              label='AUC = %0.2f' % roc_auc)
-            #     plt.legend(loc='lower right')
-            #     plt.plot([0, 1], [0, 1], 'r--')
-            #     plt.xlim([-0.1, 1.2])
-            #     plt.ylim([-0.1, 1.2])
-            #     plt.ylabel('True Positive Rate')
-            #     plt.xlabel('False Positive Rate')
-            #     fig = plt.gcf()
-            #
-            #     buf1 = io.BytesIO()
-            #     fig.savefig(buf1, format='png')
-            #     buf1.seek(0)
-            #     string1 = base64.b64encode(buf1.read())
-            #     uri1 = urllib.parse.quote(string1)
-
-            # show bar chart
-            # plt.subplot(2,1,2)
-            # bar_y = tempdf['probability']
-            #
-            # bar_x = len(tempdf)
-            # plt.figure()
-
-            # #color set
-            # colors_set = []
-            # for value in bar_y:
-            #     if 0.2 <= value <= 0.45:
-            #         colors_set.append("red")
-            #     else:
-            #         colors_set.append('green')
-            #
-            # plt.barh(range(bar_x),bar_y,color = colors_set)
-            # # plt.barh(range(bar_x),bar_y)
-            #
-            # fig = plt.gcf()
-            #
-            # buf = io.BytesIO()
-            # fig.savefig(buf, format='png')
-            # buf.seek(0)
-            # string = base64.b64encode(buf.read())
-            # uri = urllib.parse.quote(string)
-
-            # args = {'data': uri, 'image':uri1}
-            #     args = {'image': uri1}
-            # return render(request, 'imagelabeling/graph.html', {'data': uri})
-            #     return render(request, 'imagelabeling/graph.html', args)
 
 
 def CreatePostView(request):
