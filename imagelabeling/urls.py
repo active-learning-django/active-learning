@@ -16,11 +16,9 @@ urlpatterns = [
     path('label/<int:image_id>/vote', views.vote, name='vote'),
     path('model/<int:ml_model_id>/run-predictions', views.updateImagesWithModelPrediction, name='update_images_with_model_prediction'),
     path('model/<int:ml_model_id>/visualization', views.visualization, name='visualization'),
-    path('model/<int:ml_model_id>/probability', views.CalculateProbability, name='show roc curve'),
+    path('model/<int:ml_model_id>/probability', views.CalculateProbability2, name='show roc curve'),
     path('model/<int:ml_model_id>/svm', views.SVMTuning, name='parameter tunning for SVM'),
     path('probability/', views.CalculateProbability, name='show roc curve'),
-
-
 
 
     path('digit/', views.labelDigitFeatures, name = 'label number features'),
@@ -36,6 +34,7 @@ urlpatterns = [
          views.numbers_model_images_by_model_class_user_class, name='numbers_model_images_by_model_class_user_class'),
     path('model/<int:ml_model_id>/numbers-visualizations-2', views.numbers_visualization_2, name='numbers visualization 2'),
     path('model/<int:ml_model_id>/numbers-visualization', views.numbers_visualization, name='numbers visualization'),
+
 
     path('generate-abstract-model', views.generateAbstractModel, name='generate abstract model'),
     path('view-models', views.viewObjectsOfModel, name='view objects of models'),

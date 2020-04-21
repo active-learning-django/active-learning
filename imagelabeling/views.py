@@ -72,6 +72,47 @@ def SVMTuning(request, ml_model_id):
 
 
 # call this view right after this model is created
+def CalculateProbability2(request, ml_model_id):
+    # get name of model we're running analysis on
+    try:
+        ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
+    except MachineLearningModel.DoesNotExist:
+        raise Http404("Model does not exist")
+
+    path = 'final_data_test_' + ml_model.title + '.csv'
+    #path = '/Users/maggie/Desktop/active-learning/large_data.csv'
+    firstdf = Calculation.readCSV(path)
+    count = 0
+
+    if request.method == "GET":
+
+            rid_result = Calculation.ridge_regression(firstdf)
+            concatedDF = Calculation.concateData(rid_result)
+            final = Calculation.ridge_regression(concatedDF)
+
+            print("       ")
+            print(len(final['probability']))
+            print("          ")
+
+            Calculation.outputCSV(final, ml_model.title)
+            Calculation.outputJSON(final, ml_model.title)
+
+
+            plt = Calculation.ROC(final)
+            fig = plt.gcf()
+
+            buf1 = io.BytesIO()
+            fig.savefig(buf1, format='png')
+            buf1.seek(0)
+            string1 = base64.b64encode(buf1.read())
+            uri1 = urllib.parse.quote(string1)
+
+            form_class = BooleanForm
+            args = {'image': uri1, 'form': form_class}
+
+            return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
+
+
 def CalculateProbability(request):
 
     # get name of model we're running analysis on
