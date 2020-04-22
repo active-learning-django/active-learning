@@ -130,7 +130,7 @@ class Calculation:
         # print(prob)
         score = ridge_refit.score(X, y)
         # score = joblib_model.score(X, y)
-        # print("R^2 score: ", score)
+        print("R^2 score: ", score)
 
         # probability result
         self['probability'] = prob
@@ -138,7 +138,6 @@ class Calculation:
         # calculate absolute value
         self['dif'] = abs(self['probability'] - 0.5)
 
-        # result = [data, data['probability'], data['dif'],score]
 
         return self
 

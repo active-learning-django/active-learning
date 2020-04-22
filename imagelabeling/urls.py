@@ -19,6 +19,9 @@ urlpatterns = [
     path('model/<int:ml_model_id>/probability', views.CalculateProbability2, name='show roc curve'),
     path('model/<int:ml_model_id>/svm', views.SVMTuning, name='parameter tunning for SVM'),
     path('probability/', views.CalculateProbability, name='show roc curve'),
+    path('reg/',views.register,name = 'register'),
+    path('data/',views.CalculateProbabilityNum,name = 'pull data'),
+
 
 
     path('digit/', views.labelDigitFeatures, name = 'label number features'),

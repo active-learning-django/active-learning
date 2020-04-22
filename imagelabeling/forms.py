@@ -1,9 +1,8 @@
 from django import forms
 from .models import ImageLabel
-from .models import MachineLearningModel, MachineLearningNumbersModel
+from .models import MachineLearningModel, MachineLearningNumbersModel,DigitFeature
 from django.utils.translation import gettext_lazy as _
 from .models import NumOfIteration
-
 
 class CreateMachineLearningModelForm(forms.ModelForm):
     class Meta:
@@ -67,16 +66,21 @@ class SVMKernel(forms.Form):
     field = forms.TypedChoiceField(label="Kernel",coerce=str,
                                    choices=kerneloption)
 
-class DigitFeatureForm(forms.Form):
-    total_digit = forms.CharField()
-    horizontal_line = forms.CharField()
-    vertical_line = forms.CharField()
-    loops = forms.CharField()
-    close_eye_hook = forms.CharField()
-    open_eye_hook = forms.CharField()
-    acute_Angle = forms.CharField()
-    right_Angle = forms.CharField()
-    curve = forms.CharField()
+class DigitFeatureForm(forms.ModelForm):
+    class Meta:
+        model = DigitFeature
+        # fields = ['total_digit','horizontal_line','vertical_line','loops','close_eye_hook','open_eye_hook','acute_Angle','right_Angle','curve']
+        fields = ['total_digit', 'horizontal_line', 'vertical_line', 'loops', 'close_eye_hook', 'open_eye_hook', 'acute_Angle','right_Angle','label']
+    # total_digit = forms.CharField()
+    # horizontal_line = forms.CharField()
+    # vertical_line = forms.CharField()
+    # loops = forms.CharField()
+    # close_eye_hook = forms.CharField()
+    # open_eye_hook = forms.CharField()
+    # acute_Angle = forms.CharField()
+    # right_Angle = forms.CharField()
+    # curve = forms.CharField()
+
    
 
 class NumShapeForm(forms.Form):
@@ -93,6 +97,10 @@ class NumShapeForm(forms.Form):
         ('nine', 'Ballon on String'),
     )
     shape = forms.ChoiceField(choices=selection,required=True)
-
-
+#
+# class RegisterForm(forms.ModelForm):
+#     class Meta:
+#         model = UserInfo
+#         fields = ['total_digit','horizontal_line', 'vertical_line','loops','close_eye_hook','open_eye_hook','acute_Angle',
+#                   'right_Angle','curve']
 

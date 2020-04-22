@@ -21,16 +21,16 @@ from zipfile import *
 
 # get the forms
 from .forms import ImageLabelForm, CreateMachineLearningModelForm, CreateMachineLearningNumbersModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm, DigitFeatureForm, NumShapeForm
-from .models import ImageLabel, MachineLearningModel, MachineLearningNumbersModel, ModelSchema, FieldSchema, NumberLabel
+from .models import ImageLabel, MachineLearningModel, MachineLearningNumbersModel, ModelSchema, FieldSchema, NumberLabel,  DigitFeature
 from django.shortcuts import get_object_or_404, render
 
 # ml stuff
 import pandas as pd
 
 from .ridgemodel import Calculation
-from .ridgemodel_multiclass import Calculation as CalculationMultiClass
+# from .ridgemodel_multiclass import Calculation as CalculationMultiClass
 
-
+from .ridgemodel_multiclass import CalculationMultiClass
 from pylab import *
 import io, urllib, base64
 from sklearn.metrics import roc_curve, auc
@@ -45,17 +45,98 @@ class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
+# the function is used to test the multiclass classifier
+def CalculateProbabilityNum(request):
+    path = "/Users/maggie/Desktop/active-learning/digit_features.csv"
+    df = CalculationMultiClass.readCSV(path)
+    multi_model_df = CalculationMultiClass.oneVSrest(df)
 
-def labelDigitFeatures(request):
-    if request.method == "POST":
-        feature_form = DigitFeatureForm(request.POST)
-        shape_form = NumShapeForm(request.POST)
+    print(multi_model_df['probability'])
+    print(multi_model_df['predicted_label'])
+
+    return HttpResponse("work")
+
+# get save form in database, convert into csv for testing
+def getFeaturefromDB():
+    myModel = DigitFeature.objects.all()
+    # myModel = get_object_or_404(DigitFeature)
+
+    total_digit_col = []
+    horizontal_col = []
+    vertical_col = []
+    loops_col = []
+    close_eye_col = []
+    open_eye_col = []
+    acute_col = []
+    right_col = []
+    # curve_col = []
+    label_col = []
+    df = pd.DataFrame()
+    for digit in myModel:
+        total_digit_col.append(digit.total_digit)
+        horizontal_col.append(digit.horizontal_line)
+        vertical_col.append(digit.vertical_line)
+        loops_col.append(digit.loops)
+        close_eye_col.append(digit.close_eye_hook)
+        open_eye_col.append(digit.open_eye_hook)
+        acute_col.append(digit.acute_Angle)
+        right_col.append(digit.right_Angle)
+        # curve_col.append(digit.curve)
+        label_col.append(digit.label)
+
+
+    df['total_digit'] = total_digit_col
+    df['horizontal_line'] = horizontal_col
+    df['vertical_line'] = vertical_col
+    df['loops'] = loops_col
+    df['close_eye_hook'] = close_eye_col
+    df['open_eye_hook'] = open_eye_col
+    df['acute_angle'] = acute_col
+    df['right_angle'] = right_col
+    # df['curve'] = curve_col
+    df['label'] = label_col
+
+    df = df.to_csv('feature_db2.csv',index=False)
+
+    return df
+
+## form to ask user to input features of numbers
+def register(request):
+    if request.method == "POST" and request.POST:
+        feature_form = DigitFeatureForm(data=request.POST)
+        if feature_form.is_valid():
+            total_digit = feature_form.cleaned_data["total_digit"]
+            horizontal_line = feature_form.cleaned_data["horizontal_line"]
+            vertical_line = feature_form.cleaned_data["vertical_line"]
+            loops = feature_form.cleaned_data["loops"]
+            close_eye_hook = feature_form.cleaned_data["close_eye_hook"]
+            open_eye_hook = feature_form.cleaned_data["open_eye_hook"]
+            acute_Angle = feature_form.cleaned_data["acute_Angle"]
+            right_Angle = feature_form.cleaned_data["right_Angle"]
+            # curve = feature_form.cleaned_data["curve"]
+            label = feature_form.cleaned_data['label']
+
+            DigitFeature.objects.create(total_digit=total_digit,horizontal_line=horizontal_line,loops=loops,
+                                        vertical_line=vertical_line,close_eye_hook=close_eye_hook,open_eye_hook=open_eye_hook,
+                                        acute_Angle=acute_Angle,right_Angle=right_Angle,label=label)
+            feature_form = DigitFeatureForm()
+
     else:
-        feature_form = DigitFeatureForm
-        shape_form = NumShapeForm
+        feature_form = DigitFeatureForm()
+    return render(request, "imagelabeling/register.html",{'feature_form': feature_form})
 
-    # return HttpResponse("hello")
-    return render(request, 'imagelabeling/label_digit.html',{'feature_form':feature_form, 'shape_form':shape_form})
+
+
+# def labelDigitFeatures(request):
+#     if request.method == "POST":
+#         feature_form = DigitFeatureForm(request.POST)
+#         shape_form = NumShapeForm(request.POST)
+#     else:
+#         feature_form = DigitFeatureForm
+#         shape_form = NumShapeForm
+#
+#     # return HttpResponse("hello")
+#     return render(request, 'imagelabeling/label_digit.html',{'feature_form':feature_form, 'shape_form':shape_form})
 
 def SVMTuning(request, ml_model_id):
     if request.method == "POST":

@@ -130,4 +130,25 @@ class NumOfIteration(models.Model):
     def __str__(self):
         return self.Iteration
 
+# class UserInfo(models.Model):
+#     username = models.CharField(max_length=32, verbose_name="用户名")
+#     password = models.CharField(max_length=32, verbose_name="密码")
+#     nickname = models.CharField(max_length=32, verbose_name="姓名")
+#     phone = models.CharField(max_length=11, verbose_name="电话")
+#     email = models.EmailField(verbose_name="邮箱")
 
+class DigitFeature(models.Model):
+    total_digit = models.IntegerField(null=True)
+    horizontal_line = models.IntegerField(null=True)
+    vertical_line = models.IntegerField(null=True)
+    loops = models.IntegerField(null=True)
+    close_eye_hook = models.IntegerField( null=True)
+    open_eye_hook = models.IntegerField( null=True)
+    acute_Angle = models.IntegerField(null=True)
+    right_Angle = models.IntegerField(null=True)
+    # curve = models.IntegerField(null=True)
+    label = models.IntegerField(null=True)
+    #
+    # def __str__(self):
+    #     list = [self.total_digit, self.horizontal_line, self.vertical_line, self.loops,self.close_eye_hook,self.open_eye_hook,self.acute_Angle,self.right_Angle, self.curve]
+    #     return list
