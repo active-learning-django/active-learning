@@ -19,12 +19,12 @@ urlpatterns = [
     path('model/<int:ml_model_id>/probability', views.CalculateProbability2, name='show roc curve'),
     path('model/<int:ml_model_id>/svm', views.SVMTuning, name='parameter tunning for SVM'),
     path('probability/', views.CalculateProbability, name='show roc curve'),
-    path('reg/',views.register,name = 'register'),
+    path('reg/',views.register, name = 'register'),
     path('data/',views.CalculateProbabilityNum,name = 'pull data'),
 
 
 
-    path('digit/', views.labelDigitFeatures, name = 'label number features'),
+    path('numbers-model/<int:ml_model_id>/number-label/<int:numbers_image_id>/digits', views.labelDigitFeatures, name='label features of the digit'),
     path('create-numbers-model', views.CreateNumbersModelView, name='create numbers model'),
     path('model/<int:ml_model_id>/number-label/<int:numbers_image_id>/', views.numbers_image_label_detail, name='detail'),
     path('label/<int:image_id>/vote-numbers', views.voteNumbers, name='voteNumbers'),

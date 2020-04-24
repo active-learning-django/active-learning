@@ -42,7 +42,7 @@ class CalculationMultiClass:
         print(alpha_list)
 
         # # run model with all alpha
-        ridgecv = RidgeCV(alphas=self, scoring='neg_mean_squared_error', normalize=True)
+        ridgecv = RidgeCV(alphas=alpha_list, scoring='neg_mean_squared_error', normalize=True)
         ridgecv.fit(train_X, train_y)
 
         # the best shrinkage
@@ -119,43 +119,57 @@ class CalculationMultiClass:
 
         return self
 
+    def oneVsOne(self):
+        X = self.drop(['label', "image", 'dif', 'probability'], axis=1)
+
+        # actual values of labels
+        y = self['label'].values
+        for i in y:
+            print(i)
+
+
+        classifications = OneVsOneClassifier(LinearSVC(random_state=0)).fit(X, y).predict(X)
+        print("classifications ===================")
+        for i in classifications:
+            print(i)
+        # this is the multiclass part
+        # https://stackoverflow.com/questions/61222686/scikit-learns-ridge-clasifiers-working-for-multi-class-not-clear
+
+        # probability result
+        self['probability'] = classifications
+        return self
 
     def readConfusionMatrix(self):
 
-        cm = confusion_matrix(self['label'], self['predicted_label'])
+        X = self.drop(['label', "image", 'dif', 'probability'], axis=1)
 
-        # X = self.drop(['label', "image", 'dif', 'probability'], axis=1)
-        #
-        # # actual values of labels
-        # y = self['label'].values
-        # for i in y:
-        #     print(i)
-        #
-        #
-        # classifications = OneVsOneClassifier(LinearSVC(random_state=0)).fit(X, y).predict(X)
-        # print("classifications ===================")
-        # for i in classifications:
-        #     print(i)
-        # # this is the multiclass part
-        # # https://stackoverflow.com/questions/61222686/scikit-learns-ridge-clasifiers-working-for-multi-class-not-clear
-        #
-        # # probability result
-        # self['probability'] = classifications
-        #
-        #
-        #
-        # # result = [data, data['probability'], data['dif'],score]
+        # actual values of labels
+        y = self['label'].values
+        for i in y:
+            print(i)
 
-        return cm
+        classifications = OneVsOneClassifier(LinearSVC(random_state=0)).fit(X, y).predict(X)
+        print("classifications ===================")
+        for i in classifications:
+            print(i)
+        # this is the multiclass part
+        # https://stackoverflow.com/questions/61222686/scikit-learns-ridge-clasifiers-working-for-multi-class-not-clear
+
+        # probability result
+        self['probability'] = classifications
+
+        # result = [data, data['probability'], data['dif'],score]
+
+        return self
 
     def findprob(self):
         return self['probability']
-    #
-    # def ROC(self):
-    #     #self == dataframe
-    #     prediction = self['probability']
-    #     actual = self['label'].values
-    #     confusion_matrix(actual, prediction, labels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+    def ROC(self):
+        #self == dataframe
+        prediction = self['probability']
+        actual = self['label'].values
+        confusion_matrix(actual, prediction, labels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
     def concateData(self):
 
@@ -178,6 +192,12 @@ class CalculationMultiClass:
     def outputCSV(self):
         df = pd.DataFrame(self)
         df.to_csv('multiclass_db_output.csv', index=False)
+
+        return df
+
+    def outputCSVCM(self, model_name):
+        df = pd.DataFrame(self)
+        df.to_csv('final_data_' + model_name + '.csv', index=False)
 
         return df
 

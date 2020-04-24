@@ -127,16 +127,26 @@ def register(request):
 
 
 
-# def labelDigitFeatures(request):
-#     if request.method == "POST":
-#         feature_form = DigitFeatureForm(request.POST)
-#         shape_form = NumShapeForm(request.POST)
-#     else:
-#         feature_form = DigitFeatureForm
-#         shape_form = NumShapeForm
-#
-#     # return HttpResponse("hello")
-#     return render(request, 'imagelabeling/label_digit.html',{'feature_form':feature_form, 'shape_form':shape_form})
+def labelDigitFeatures(request, ml_model_id, numbers_image_id):
+    # get the picture of the image to display above the form
+    try:
+        ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
+    except MachineLearningNumbersModel.DoesNotExist:
+        raise Http404("Model does not exist")
+    try:
+        image = NumberLabel.objects.get(pk=numbers_image_id)
+    except NumberLabel.DoesNotExist:
+        raise Http404("Label does not exist")
+
+    if request.method == "POST":
+        feature_form = DigitFeatureForm(request.POST)
+        shape_form = NumShapeForm(request.POST)
+    else:
+        feature_form = DigitFeatureForm
+        shape_form = NumShapeForm
+
+    # return HttpResponse("hello")
+    return render(request, 'imagelabeling/label_digit.html',{'feature_form':feature_form, 'shape_form':shape_form, 'ml_model': ml_model, 'image': image})
 
 def SVMTuning(request, ml_model_id):
     if request.method == "POST":
@@ -277,15 +287,16 @@ def CalculateProbabilityNumbers(request, ml_model_id):
 
     if request.method == "GET":
 
-            rid_result = CalculationMultiClass.ridge_regression(firstdf)
+            # need to figure out what this is supposed to do in regards to ridge regression model
+            rid_result = CalculationMultiClass.oneVsOne(firstdf)
             concatedDF = CalculationMultiClass.concateData(rid_result)
-            final = CalculationMultiClass.ridge_regression(concatedDF)
+            final = CalculationMultiClass.oneVsOne(concatedDF)
 
             print("       ")
             print(len(final['probability']))
             print("          ")
 
-            CalculationMultiClass.outputCSV(final, ml_model.title)
+            CalculationMultiClass.outputCSVCM(final, ml_model.title)
             CalculationMultiClass.outputJSON(final, ml_model.title)
             return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions-numbers')
 
@@ -612,6 +623,7 @@ def updateNumbersImagesWithModelPrediction(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningNumbersModel, pk=ml_model_id)
     images = ml_model.numberlabel_set.all()
     df = pd.read_csv('final_data_' + ml_model.title + '.csv')
+    print("updating numbers images with model prediction")
     for image in images:
         title = "media/ml_model_images/" + ml_model.title + "/" + image.title
         entry = df.loc[df['image'] == title]

@@ -159,7 +159,7 @@ d3.csv('../../media/final_data_' + ml_model_title + '_probabilities.csv', functi
       .attr("height", 40 )
       .style("fill", function(d) { return myColor(d.count)} )
          .on('mouseover', function(d, i) {
-          console.log("mouseover on", this);
+          console.log(d.count);
           // make the mouseover'd element
           // bigger and red
           d3.select(this)
