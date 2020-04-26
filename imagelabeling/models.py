@@ -142,12 +142,14 @@ class DigitFeature(models.Model):
     horizontal_line = models.IntegerField(null=True)
     vertical_line = models.IntegerField(null=True)
     loops = models.IntegerField(null=True)
-    close_eye_hook = models.IntegerField( null=True)
-    open_eye_hook = models.IntegerField( null=True)
+    close_eye_hook = models.IntegerField(null=True)
+    open_eye_hook = models.IntegerField(null=True)
     acute_Angle = models.IntegerField(null=True)
     right_Angle = models.IntegerField(null=True)
     # curve = models.IntegerField(null=True)
     label = models.IntegerField(null=True)
+    # machine_learning_model = models.ForeignKey(MachineLearningNumbersModel, on_delete=models.CASCADE)
+    # image_file = models.ImageField(upload_to=get_image_filename)
     #
     # def __str__(self):
     #     list = [self.total_digit, self.horizontal_line, self.vertical_line, self.loops,self.close_eye_hook,self.open_eye_hook,self.acute_Angle,self.right_Angle, self.curve]

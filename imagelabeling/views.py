@@ -45,6 +45,38 @@ class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
+def newvote(request, image_id):
+    image = get_object_or_404(ImageLabel, pk=image_id)
+    ml_model = image.machine_learning_model
+    ml_id = ml_model.id
+    choice = request.POST['choice']
+    if choice == "1":
+        print("Choice is 1")
+        selected_choice = image.one_votes
+        selected_choice += 1
+        image.one_votes = selected_choice
+    elif choice == "0":
+        print("Choice is 0")
+        selected_choice = image.zero_votes
+        selected_choice += 1
+        image.zero_votes = selected_choice
+    else:
+        selected_choice = image.unknown_votes
+        selected_choice += 1
+        image.unknown_votes = selected_choice
+
+    # recalculate confidence based on new vote
+    if image.one_votes + image.zero_votes != 0:
+        image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
+        # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
+        image.adjusted_user_score = abs(image.user_score - 0.5)
+    else:
+        image.user_score = 0.5
+        image.adjusted_user_score = 0
+    image.save()
+    return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
+
+
 # the function is used to test the multiclass classifier
 def CalculateProbabilityNum(request):
     path = "/Users/maggie/Desktop/active-learning/digit_features.csv"
@@ -101,9 +133,13 @@ def getFeaturefromDB():
     return df
 
 ## form to ask user to input features of numbers
-def register(request):
-    if request.method == "POST" and request.POST:
-        feature_form = DigitFeatureForm(data=request.POST)
+def register(request,ml_model_id):
+    # and request.POST
+    feature_form = DigitFeatureForm(data=request.POST)
+    # image = NumberLabel.objects.get()
+    if request.method == "POST":
+        # print(image)
+
         if feature_form.is_valid():
             total_digit = feature_form.cleaned_data["total_digit"]
             horizontal_line = feature_form.cleaned_data["horizontal_line"]
