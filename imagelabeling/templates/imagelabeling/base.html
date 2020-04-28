@@ -88,6 +88,17 @@
                   Enter feature for number
                 </a>
               </li>
+                <a class="nav-link" href="/model/{{ ml_model.id }}/f">
+                  <span data-feather="bar-chart-2"></span>
+                  uncertain cases
+                </a>
+              </li>
+              </li>
+                <a class="nav-link" href="model/<int:ml_model_id>/f/<int:image_id>/">
+                  <span data-feather="bar-chart-2"></span>
+                  relabel uncertain
+                </a>
+              </li>
             </ul>
           </div>
         </nav>

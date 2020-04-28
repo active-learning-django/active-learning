@@ -21,7 +21,10 @@ urlpatterns = [
     # path('probability/', views.CalculateProbability, name='show roc curve'),
     path('model/<int:ml_model_id>/reg',views.register, name = 'register'),
     path('data/',views.CalculateProbabilityNum,name = 'pull data'),
-    path('f/', views.filter,name = 'c'),
+    path('model/<int:ml_model_id>/f/', views.filter,name = 'c'),
+    path('model/<int:ml_model_id>/f/<int:image_id>/', views.jump,name = 'jump'),
+
+
 
 
     # path('numbers-model/<int:ml_model_id>/number-label/<int:numbers_image_id>/digits', views.labelDigitFeatures, name='label features of the digit'),

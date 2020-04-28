@@ -1,30 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Label the features Numbers</title>
-    <!--<h1>Model: {{ ml_model.title }}</h1>-->
-    <h2>Image: {{ obj.title }}</h2>
-   <div class="row">
-            <div class="col-md-8">
-                <img src="{{ obj.image_file.url}}" class="img-fluid" alt="{{ obj.title }}">
-            </div>
-   </div>
-    <!--<div style="black" id="xyz" align="justify">-->
-     <!--<h3>Shape Description of Digit</h3>-->
-     <!--<p>0: Oval<br>1: Stick<br>2: Swan<br>3: Butterfly <br>4: Flag<br>5: Hook<br>6: Combination Clock<br>-->
-         <!--7: Boomerang<br>8: Snowman<br>9: Ballon on a String</p>-->
-    <!--</div>-->
-    <!--<form method = "POST">-->
-    <!--{{ feature_form }}-->
-    <!--&lt;!&ndash;<input type = "submit" value = "Submit">&ndash;&gt;-->
-    <!--</form>-->
-    <!--<form method = "POST">-->
-    <!--{{ shape_form }}-->
-    <!--<input type = "submit" value = "Submit">-->
-    <!--</form>-->
-</head>
-<body>
+{%  extends "imagelabeling/base.html" %}
 
-</body>
-</html>
+{% block content %}
+
+    <h1 class="h2">{{ ml_model.title }}</h1>
+    <!--<p>{{ ml_model.classification_notes }}</p>-->
+        <h1 class="h2">All uncertain cases</h1>
+            <div class="row">
+              {% for image in obj %}
+              <div class="col-lg-3 col-md-4 col-6">
+                <h2 class="h5 word-break">{{ image.title }}</h2>
+                <a href="/model/{{ ml_model.pk }}/label/{{ image.pk }}">
+                <img src="{{ image.image_file.url}}" class="img-fluid img-thumbnail" alt="{{ image.title }}">
+                </a>
+              </div>
+              {% endfor %}
+            </div>
+
+{% endblock %}

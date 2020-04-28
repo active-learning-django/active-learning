@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image</title>
+    <p>actual</p>
+    <div class="row">
+            <div class="col-md-8">
+                <img src="{{ image.image_file.url}}" class="img-fluid" alt="{{ image.title }}">
+            </div>
+        </div>
+    <form action="" method="post">
+            {% csrf_token %}
+            <input type="radio" name="choice" id="zero_votes" value=0>
+            <label for="zero_votes">Normal</label><br>
+            <input type="radio" name="choice" id="one_votes" value=1>
+            <label for="one_votes">Abnormal</label><br>
+            <input type="radio" name="choice" id="unknown_votes" value="Unknown">
+            <label for="unknown_votes">Unknown</label><br>
+            <input type="submit" value="Vote">
+    </form>
+</head>
+<body>
+
+</body>
+</html>

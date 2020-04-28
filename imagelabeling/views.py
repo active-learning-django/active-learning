@@ -46,9 +46,56 @@ class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
-def filter(request):
-    all = ImageLabel.objects.all()
-    print(type(all))
+# create a new vote to redirect to uncertain cases -- not finished
+def Relabelvote(request, image_id):
+    image = get_object_or_404(ImageLabel, pk=image_id)
+    ml_model = image.machine_learning_model
+    ml_id = ml_model.id
+    choice = request.POST['choice']
+    if choice == "1":
+        print("Choice is 1")
+        selected_choice = image.one_votes
+        selected_choice += 1
+        image.one_votes = selected_choice
+        image.model_classification = 1
+    elif choice == "0":
+        print("Choice is 0")
+        selected_choice = image.zero_votes
+        selected_choice += 1
+        image.zero_votes = selected_choice
+        image.model_classification = 0
+    else:
+        selected_choice = image.unknown_votes
+        selected_choice += 1
+        image.unknown_votes = selected_choice
+
+    # recalculate confidence based on new vote
+    if image.one_votes + image.zero_votes != 0:
+        image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
+        # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
+        image.adjusted_user_score = abs(image.user_score - 0.5)
+    else:
+        image.user_score = 0.5
+        image.adjusted_user_score = 0
+    image.save()
+    return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
+
+
+def jump(request,ml_model_id, image_id):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    image = ImageLabel.objects.get(pk=image_id)
+    # image = ImageLabel.objects.get(id=364)
+    label_form = ImageLabelForm(request.POST)
+
+    return render(request, 'imagelabeling/jump_detail.html',{'image':image,'label_form':label_form,'ml_model':ml_model})
+
+
+def filter(request,ml_model_id):
+    # all = ImageLabel.objects.all()
+    # print(type(all))
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    print(ml_model_id)
+
     clean_uncertain_list = []
     full_name_uncertain = []
     id_tuple =[]
@@ -57,7 +104,7 @@ def filter(request):
     df = pd.read_csv("/Users/maggie/Desktop/active-learning/final_data_test_relabel_demo.csv")
     low_dif = df[df['dif'] < 0.3]
     uncertain_list = low_dif['image']
-    # print(uncertain_list)
+    print(uncertain_list)
 
 
     for elem in uncertain_list:
@@ -79,7 +126,7 @@ def filter(request):
 
     # extract the objects with near 0.5 probability using ID
     obj = ImageLabel.objects.filter(id__in=id_tuple)
-    print(type(obj))
+    print(obj)
 
     # # change model_classification by id
     # id = 343
@@ -87,29 +134,29 @@ def filter(request):
     # s = ImageLabel.objects.get(id = id)
 
     # # extract the objects with near 0.5 probability using title
-    obj = ImageLabel.objects.filter(title__in=full_name_uncertain)
-    # print(obj)
+    # obj = ImageLabel.objects.filter(title__in=full_name_uncertain)
+    # # print(obj)
+    #
+    # # # change model_classification by title
+    # t = full_name_uncertain[0]
+    # ImageLabel.objects.filter(title=t).update(model_classification=0)
+    #
+    # s = ImageLabel.objects.get(title=t)
+    # newlabel = s.model_classification
+    #
+    # #find the row index that is uncertain
+    # df1 = df[df['image'].str.contains(t)]
+    # r_index = df1.index.values.astype(int)[0]
+    #
+    # df.iloc[[r_index],[1001]] = newlabel
+    #
+    # print(df.iloc[[r_index],[1001]])
+    #
+    # df.to_csv('final_data_test_relabel_demo_modified.csv', index=False)
 
-    # # change model_classification by title
-    t = full_name_uncertain[0]
-    ImageLabel.objects.filter(title=t).update(model_classification=0)
-
-    s = ImageLabel.objects.get(title=t)
-    newlabel = s.model_classification
-
-    #find the row index that is uncertain
-    df1 = df[df['image'].str.contains(t)]
-    r_index = df1.index.values.astype(int)[0]
-
-    df.iloc[[r_index],[1001]] = newlabel
-
-    print(df.iloc[[r_index],[1001]])
-
-    df.to_csv('final_data_test_relabel_demo_modified.csv', index=False)
 
 
-
-    return render(request, 'imagelabeling/f.html', {'obj': obj})
+    return render(request, 'imagelabeling/f.html', {'obj': obj,'ml_model': ml_model})
 
     # return HttpResponse("work")
 
