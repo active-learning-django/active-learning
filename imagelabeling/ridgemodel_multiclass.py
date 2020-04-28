@@ -184,16 +184,16 @@ class CalculationMultiClass:
 
         return newdf
 
-    # def outputCSV(self, model_name):
-    #     df = pd.DataFrame(self)
-    #     df.to_csv('final_data_' + model_name + '.csv', index=False)
+    def outputCSV(self, model_name):
+        df = pd.DataFrame(self)
+        df.to_csv('final_data_' + model_name + '.csv', index=False)
     #
     #     return df
-    def outputCSV(self):
-        df = pd.DataFrame(self)
-        df.to_csv('multiclass_db_output.csv', index=False)
-
-        return df
+    # def outputCSV(self):
+    #     df = pd.DataFrame(self)
+    #     df.to_csv('multiclass_db_output.csv', index=False)
+    #
+    #     return df
 
     def outputCSVCM(self, model_name):
         df = pd.DataFrame(self)

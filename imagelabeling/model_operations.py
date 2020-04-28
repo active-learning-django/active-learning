@@ -1,4 +1,4 @@
-print(__doc__)
+
 
 # Author: Gael Varoquaux <gael dot varoquaux at normalesup dot org>
 # Revised 3/8/2020 by Nick Kebbas
