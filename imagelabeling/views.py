@@ -559,11 +559,13 @@ def vote(request, image_id):
         selected_choice = image.one_votes
         selected_choice += 1
         image.one_votes = selected_choice
+        image.model_classification = 1
     elif choice == "0":
         print("Choice is 0")
         selected_choice = image.zero_votes
         selected_choice += 1
         image.zero_votes = selected_choice
+        image.model_classification = 0
     else:
         selected_choice = image.unknown_votes
         selected_choice += 1
