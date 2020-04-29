@@ -1,6 +1,6 @@
 from django import forms
 from .models import ImageLabel
-from .models import MachineLearningModel, MachineLearningNumbersModel,DigitFeature
+from .models import MachineLearningModel, MachineLearningNumbersModel,DigitFeature, AlphaInput
 from django.utils.translation import gettext_lazy as _
 from .models import NumOfIteration
 
@@ -104,3 +104,7 @@ class NumShapeForm(forms.Form):
 #         fields = ['total_digit','horizontal_line', 'vertical_line','loops','close_eye_hook','open_eye_hook','acute_Angle',
 #                   'right_Angle','curve']
 
+class AlphaInputForm(forms.ModelForm):
+    class Meta:
+        model = AlphaInput
+        fields = ['alpha_input']

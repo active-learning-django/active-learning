@@ -154,3 +154,7 @@ class DigitFeature(models.Model):
     # def __str__(self):
     #     list = [self.total_digit, self.horizontal_line, self.vertical_line, self.loops,self.close_eye_hook,self.open_eye_hook,self.acute_Angle,self.right_Angle, self.curve]
     #     return list
+#
+class AlphaInput(models.Model):
+    alpha_input = models.FloatField(default=0)
+

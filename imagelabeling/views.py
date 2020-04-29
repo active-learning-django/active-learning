@@ -20,8 +20,8 @@ from django.core import serializers
 from zipfile import *
 
 # get the forms
-from .forms import ImageLabelForm, CreateMachineLearningModelForm, CreateMachineLearningNumbersModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm, DigitFeatureForm, NumShapeForm
-from .models import ImageLabel, MachineLearningModel, MachineLearningNumbersModel, ModelSchema, FieldSchema, NumberLabel,  DigitFeature
+from .forms import ImageLabelForm, CreateMachineLearningModelForm, CreateMachineLearningNumbersModelForm, ImageBulkUploadForm, GammaForm, BooleanForm, SVMKernel, CreateDynamicModelForm, DigitFeatureForm, NumShapeForm, AlphaInputForm
+from .models import ImageLabel, MachineLearningModel, MachineLearningNumbersModel, ModelSchema, FieldSchema, NumberLabel,  DigitFeature, AlphaInput
 from django.shortcuts import get_object_or_404, render
 
 # ml stuff
@@ -39,8 +39,6 @@ from sklearn.metrics import roc_curve, auc
 # get models
 from django.apps import apps
 import re
-
-
 
 
 class HomePageView(ListView):
@@ -105,7 +103,7 @@ def Relabelvote(request, image_id):
 
     return HttpResponseRedirect('/model/' + str(ml_id) + '/f/')
     # return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-# model/<int:ml_model_id>/f/
+
 
 
 def jump(request,ml_model_id, image_id):
@@ -240,6 +238,20 @@ def getFeaturefromDB():
     df = df.to_csv('feature_db2.csv',index=False)
 
     return df
+
+## form to ask user to input alhpa value for ridge regression
+def AlphaInput(request):
+
+    if request.method == "POST":
+        form = AlphaInputForm(request.POST)
+        form.save()
+
+    else:
+        form = AlphaInputForm
+
+    return render(request, "imagelabeling/alpha_input.html", {'form' : form})
+
+
 
 ## form to ask user to input features of numbers
 def register(request,ml_model_id,image_id):

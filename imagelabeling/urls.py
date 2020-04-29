@@ -12,7 +12,7 @@ urlpatterns = [
     path('model/<int:ml_model_id>/train', views.trainModel, name='train-model'),
     path('model/<int:ml_model_id>/', views.ml_model_detail, name='detail'),
     # path('model/<int:ml_model_id>/label/', views.LabelImageView, name='label_image'),
-    path('model/<int:ml_model_id>/label/<int:image_id>/', views.image_label_detail, name='detail'),
+    path('model/<int:ml_model_id>/f/<int:image_id>/', views.image_label_detail, name='detail'),
     # path('label/<int:image_id>/vote', views.vote, name='vote'),
     path('model/<int:ml_model_id>/run-predictions', views.updateImagesWithModelPrediction, name='update_images_with_model_prediction'),
     path('model/<int:ml_model_id>/visualization', views.visualization, name='visualization'),
@@ -24,6 +24,7 @@ urlpatterns = [
     path('model/<int:ml_model_id>/f/', views.filter,name = 'c'),
     path('model/<int:ml_model_id>/f/<int:image_id>/', views.jump,name = 'jump'),
     path('label/<int:image_id>/Relabelvote', views.Relabelvote, name='vote'),
+    path('a/', views.AlphaInput, name='alpha input'),
 
 
 
