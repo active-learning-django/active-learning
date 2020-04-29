@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <title>Image</title>
     <p>actual</p>
+    <!--<p>{{click_count}}</p>-->
     <div class="row">
             <div class="col-md-8">
                 <img src="{{ image.image_file.url}}" class="img-fluid" alt="{{ image.title }}">
             </div>
         </div>
-    <form action="" method="post">
+    <form action="{% url 'Relabelvote' image.id %" method="post">
             {% csrf_token %}
             <input type="radio" name="choice" id="zero_votes" value=0>
             <label for="zero_votes">Normal</label><br>

@@ -22,6 +22,43 @@ class Calculation:
         # data.replace('',np.nan, regex=True)
         return data
 
+    #ridge regression use user's prefer alpha value
+    def RidgeWithTuning(self,alpha):
+        X = self.drop(['label', "image", 'dif', 'probability'], axis=1)
+        y = self['label'].values.reshape(-1, 1)
+
+        train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=0)
+
+        ridge_refit = Ridge(alpha=alpha, normalize=True)
+        ridge_refit.fit(train_X, train_y)
+        ridge_refit.predict(test_X)
+
+        # #save model to Joblib Module
+        # joblib_file = "joblib_model.pkl"
+        # joblib.dump(ridge_refit, joblib_file)
+
+        # # Load from file
+        # joblib_model = joblib.load(joblib_file)
+
+        # run best model with a X data
+        prob = ridge_refit.predict(X)
+
+        # prob = joblib_model.predict(X)
+        # print(prob)
+        score = ridge_refit.score(X, y)
+        # score = joblib_model.score(X, y)
+        # print("R^2 score: ", score)
+
+        # probability result
+        self['probability'] = prob
+
+        # calculate absolute value
+        self['dif'] = abs(self['probability'] - 0.5)
+
+        result = [self,alpha, score]
+        return result
+
+    # ridge regression that used all alpha value, display roc curve for each alpha value
     def newridge(self):
         X = self.drop(['label', "image", 'dif', 'probability'], axis=1)
         y = self['label'].values.reshape(-1, 1)
@@ -67,7 +104,7 @@ class Calculation:
 
         # plt.show()
         return plt
-
+    # non-parameter tunning ridge_regression, find best alpha
     def best_lambda(self):
         X = self.drop(['label', "image", 'dif', 'probability'], axis=1)
         y = self['label'].values.reshape(-1, 1)
@@ -89,6 +126,7 @@ class Calculation:
 
         return best_alpha
 
+    #no parameter tunning
     def ridge_regression(self,alpha):
 
 
@@ -195,16 +233,20 @@ class Calculation:
 
 
 # if __name__ == '__main__':
-    # unittest.main()
+#     # unittest.main()
+#
+#     # path = '../final_data_test_relabel_demo'
+#     path = '/Users/maggie/Desktop/active-learning/final_data_test_relabel_demo.csv'
+#
+#     data = pd.read_csv(path)
+#     data['dif'] = 0
+#     data['probability'] = 0
+#     # print(data)
+#     tune_ridge = Calculation.RidgeWithTuning(data,1)
+#     print(tune_ridge[1])
+#
+#     Calculation.ROC(tune_ridge[0])
 
-    # path = '../final_data_test.csv'
-    # # path = '/Users/maggie/Desktop/active-learning/final_data_test_Test-951.csv'
-    # data = pd.read_csv(path)
-    # data.drop(['Unnamed: 0'], axis=1, inplace=True)
-    # data['dif'] = 0
-    # data['probability'] = 0
-    # # print(data)
-#     #
 #
 #
 #

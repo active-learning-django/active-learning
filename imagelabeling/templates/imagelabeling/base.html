@@ -58,14 +58,14 @@
                   Upload Images
                 </a>
               </li>
+              <!--<li class="nav-item">-->
+                <!--<a class="nav-link" href="/model/{{ ml_model.id }}/label">-->
+                  <!--<span data-feather="shopping-cart"></span>-->
+                  <!--Label Images-->
+                <!--</a>-->
+              <!--</li>-->
               <li class="nav-item">
-                <a class="nav-link" href="/model/{{ ml_model.id }}/label">
-                  <span data-feather="shopping-cart"></span>
-                  Label Images
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/model/{{ ml_model.id }}/prob">
+                <a class="nav-link" href="/model/{{ ml_model.id }}/probability">
                   <span data-feather="users"></span>
                   Model Probability Visualizations
                 </a>
@@ -76,29 +76,29 @@
                   Model/User Feedback Visualization
                 </a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/model/{{ ml_model.id }}/svm">
-                  <span data-feather="bar-chart-2"></span>
-                  Tunning parameters for svm
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/model/{{ ml_model.id }}/reg">
-                  <span data-feather="bar-chart-2"></span>
-                  Enter feature for number
-                </a>
-              </li>
+              <!--<li class="nav-item">-->
+                <!--<a class="nav-link" href="/model/{{ ml_model.id }}/svm">-->
+                  <!--<span data-feather="bar-chart-2"></span>-->
+                  <!--Tunning parameters for svm-->
+                <!--</a>-->
+              <!--</li>-->
+              <!--<li class="nav-item">-->
+                <!--<a class="nav-link" href="/model/{{ ml_model.id }}/reg">-->
+                  <!--<span data-feather="bar-chart-2"></span>-->
+                  <!--Enter feature for number-->
+                <!--</a>-->
+              <!--</li>-->
                 <a class="nav-link" href="/model/{{ ml_model.id }}/f">
                   <span data-feather="bar-chart-2"></span>
                   uncertain cases
                 </a>
               </li>
-              </li>
-                <a class="nav-link" href="model/<int:ml_model_id>/f/<int:image_id>/">
-                  <span data-feather="bar-chart-2"></span>
-                  relabel uncertain
-                </a>
-              </li>
+              <!--</li>-->
+                <!--<a class="nav-link" href="model/<int:ml_model_id>/f/<int:image_id>/">-->
+                  <!--<span data-feather="bar-chart-2"></span>-->
+                  <!--relabel uncertain-->
+                <!--</a>-->
+              <!--</li>-->
             </ul>
           </div>
         </nav>

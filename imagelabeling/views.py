@@ -33,6 +33,7 @@ from .ridgemodel import Calculation
 from .ridgemodel_multiclass import CalculationMultiClass
 from pylab import *
 import io, urllib, base64
+from django.db.models import F
 from sklearn.metrics import roc_curve, auc
 
 # get models
@@ -48,7 +49,10 @@ class HomePageView(ListView):
 
 # create a new vote to redirect to uncertain cases -- not finished
 def Relabelvote(request, image_id):
-    image = get_object_or_404(ImageLabel, pk=image_id)
+    df = pd.read_csv("/Users/maggie/Desktop/active-learning/final_data_test_relabel_demo.csv")
+
+    # image = get_object_or_404(ImageLabel, pk=image_id)
+    image = ImageLabel.objects.get(pk = image_id)
     ml_model = image.machine_learning_model
     ml_id = ml_model.id
     choice = request.POST['choice']
@@ -78,23 +82,45 @@ def Relabelvote(request, image_id):
         image.user_score = 0.5
         image.adjusted_user_score = 0
     image.save()
-    return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
+    # change the original label with new label entered by user
+
+    #get the new label
+    newlabel = image.model_classification
+    #get the title of iamge
+    t = image.title
+
+    #find the image with approriate title
+    df1 = df[df['image'].str.contains(t)]
+
+    #find the row index of the image
+    r_index = df1.index.values.astype(int)[0]
+
+    #update the label of the image
+    df.iloc[[r_index], [1001]] = newlabel
+
+    # print(df.iloc[[r_index], [1001]])
+
+    #overwrite the csv file
+    df.to_csv('final_data_test_relabel_demo.csv', index=False)
+
+    return HttpResponseRedirect('/model/' + str(ml_id) + '/f/')
+    # return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+# model/<int:ml_model_id>/f/
 
 
 def jump(request,ml_model_id, image_id):
+
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     image = ImageLabel.objects.get(pk=image_id)
-    # image = ImageLabel.objects.get(id=364)
     label_form = ImageLabelForm(request.POST)
 
     return render(request, 'imagelabeling/jump_detail.html',{'image':image,'label_form':label_form,'ml_model':ml_model})
 
 
-def filter(request,ml_model_id):
-    # all = ImageLabel.objects.all()
-    # print(type(all))
+def filter(request, ml_model_id):
+
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
-    print(ml_model_id)
+    # print(ml_model_id)
 
     clean_uncertain_list = []
     full_name_uncertain = []
@@ -104,7 +130,7 @@ def filter(request,ml_model_id):
     df = pd.read_csv("/Users/maggie/Desktop/active-learning/final_data_test_relabel_demo.csv")
     low_dif = df[df['dif'] < 0.3]
     uncertain_list = low_dif['image']
-    print(uncertain_list)
+    # print(uncertain_list)
 
 
     for elem in uncertain_list:
@@ -113,10 +139,6 @@ def filter(request,ml_model_id):
         tmp_full = tmp[3] + "/" + tmp[4]
         full_name_uncertain.append(tmp_full)
 
-    # print(clean_uncertain_list)
-    # print(full_name_uncertain)
-
-    # uncertain_list= ['0_IM-0240-0001.jpeg', '1_person8_bacteria_37.jpeg']
 
     for elem in clean_uncertain_list:
             elem_id = ImageLabel.objects.only('id').get(title__contains=elem).id
@@ -126,8 +148,9 @@ def filter(request,ml_model_id):
 
     # extract the objects with near 0.5 probability using ID
     obj = ImageLabel.objects.filter(id__in=id_tuple)
-    print(obj)
+    # print(obj)
 
+    args = {'obj': obj,'ml_model':ml_model}
     # # change model_classification by id
     # id = 343
     # ImageLabel.objects.filter(id=id).update(model_classification=0)
@@ -154,9 +177,7 @@ def filter(request,ml_model_id):
     #
     # df.to_csv('final_data_test_relabel_demo_modified.csv', index=False)
 
-
-
-    return render(request, 'imagelabeling/f.html', {'obj': obj,'ml_model': ml_model})
+    return render(request, 'imagelabeling/f.html', args)
 
     # return HttpResponse("work")
 
@@ -570,16 +591,16 @@ def ml_model_detail(request, ml_model_id):
         raise Http404("Model does not exist")
     return render(request, 'imagelabeling/model_detail.html', {'ml_model': ml_model, 'images': images})
 
-
-def LabelImageView(request, ml_model_id):
-    ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
-    # logic to send the image we want user to vote on
-    desired_image_set = ml_model.imagelabel_set.all().order_by('adjusted_user_score')
-    if len(desired_image_set) == 0:
-        html = "<html><body>Currently no images</body></html>"
-        return HttpResponse(html)
-    desired_image = desired_image_set[0]
-    return render(request, 'imagelabeling/label_image.html', {'desired_image': desired_image, 'ml_model': ml_model})
+#
+# def LabelImageView(request, ml_model_id):
+#     ml_model = MachineLearningModel.objects.get(pk=ml_model_id)
+#     # logic to send the image we want user to vote on
+#     desired_image_set = ml_model.imagelabel_set.all().order_by('adjusted_user_score')
+#     if len(desired_image_set) == 0:
+#         html = "<html><body>Currently no images</body></html>"
+#         return HttpResponse(html)
+#     desired_image = desired_image_set[0]
+#     return render(request, 'imagelabeling/label_image.html', {'desired_image': desired_image, 'ml_model': ml_model})
 
 
 def image_label_detail(request, ml_model_id, image_id):
@@ -596,38 +617,38 @@ def image_label_detail(request, ml_model_id, image_id):
 
 # this will just update our database with the user's vote of whether image is normal or abnormal
 # we will envoke this from our form in /label, template label_image
-def vote(request, image_id):
-    image = get_object_or_404(ImageLabel, pk=image_id)
-    ml_model = image.machine_learning_model
-    ml_id = ml_model.id
-    choice = request.POST['choice']
-    if choice == "1":
-        print("Choice is 1")
-        selected_choice = image.one_votes
-        selected_choice += 1
-        image.one_votes = selected_choice
-        image.model_classification = 1
-    elif choice == "0":
-        print("Choice is 0")
-        selected_choice = image.zero_votes
-        selected_choice += 1
-        image.zero_votes = selected_choice
-        image.model_classification = 0
-    else:
-        selected_choice = image.unknown_votes
-        selected_choice += 1
-        image.unknown_votes = selected_choice
-
-    # recalculate confidence based on new vote
-    if image.one_votes + image.zero_votes != 0:
-        image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
-        # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
-        image.adjusted_user_score = abs(image.user_score - 0.5)
-    else:
-        image.user_score = 0.5
-        image.adjusted_user_score = 0
-    image.save()
-    return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
+# def vote(request, image_id):
+#     image = get_object_or_404(ImageLabel, pk=image_id)
+#     ml_model = image.machine_learning_model
+#     ml_id = ml_model.id
+#     choice = request.POST['choice']
+#     if choice == "1":
+#         print("Choice is 1")
+#         selected_choice = image.one_votes
+#         selected_choice += 1
+#         image.one_votes = selected_choice
+#         image.model_classification = 1
+#     elif choice == "0":
+#         print("Choice is 0")
+#         selected_choice = image.zero_votes
+#         selected_choice += 1
+#         image.zero_votes = selected_choice
+#         image.model_classification = 0
+#     else:
+#         selected_choice = image.unknown_votes
+#         selected_choice += 1
+#         image.unknown_votes = selected_choice
+#
+#     # recalculate confidence based on new vote
+#     if image.one_votes + image.zero_votes != 0:
+#         image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
+#         # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
+#         image.adjusted_user_score = abs(image.user_score - 0.5)
+#     else:
+#         image.user_score = 0.5
+#         image.adjusted_user_score = 0
+#     image.save()
+#     return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
 
 # update image_label object with classification and probability
 def updateImagesWithModelPrediction(request, ml_model_id):
