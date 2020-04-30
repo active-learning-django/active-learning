@@ -158,3 +158,7 @@ class DigitFeature(models.Model):
 class AlphaInput(models.Model):
     alpha_input = models.FloatField(default=0)
 
+    def __float__(self):
+        return self.alpha_input
+
+

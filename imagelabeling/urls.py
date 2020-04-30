@@ -24,7 +24,9 @@ urlpatterns = [
     path('model/<int:ml_model_id>/f/', views.filter,name = 'c'),
     path('model/<int:ml_model_id>/f/<int:image_id>/', views.jump,name = 'jump'),
     path('label/<int:image_id>/Relabelvote', views.Relabelvote, name='vote'),
-    path('a/', views.AlphaInput, name='alpha input'),
+    path('a/', views.GetAlpha, name='ask user for alpha'),
+    path('s/', views.userTuneRidge, name='show alpha '),
+
 
 
 

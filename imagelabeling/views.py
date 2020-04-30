@@ -45,7 +45,46 @@ class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
-# create a new vote to redirect to uncertain cases -- not finished
+def userTuneRidge(request):
+    if request.method == "GET":
+        ## get all alpha value in database
+        allA = AlphaInput.objects.all()
+
+        ## get the latest alpha to train model
+        a_obj = AlphaInput.objects.last()
+
+        ## get the alpha value
+        a_value = a_obj.alpha_input
+
+        # print(avalue.alpha_input)
+
+        ## read in the latest csv
+        path = "/Users/maggie/Desktop/active-learning/final_data_test_relabel_demo.csv"
+        df = Calculation.readCSV(path)
+
+        ## run ridge regression
+        result = Calculation.RidgeWithTuning(df,a_value)
+        print(result[1])
+
+        ## r^2 score
+        r_score = result[2]
+
+        ## generate ROC curve
+
+        plt = Calculation.ROC(result[0])
+        fig = plt.gcf()
+        buf1 = io.BytesIO()
+        fig.savefig(buf1, format='png')
+        buf1.seek(0)
+        string1 = base64.b64encode(buf1.read())
+        uri1 = urllib.parse.quote(string1)
+
+        return render(request, 'imagelabeling/a_Value.html', {"uri1": uri1, 'a_obj': a_obj, 'r_score': r_score})
+    else:
+        return HttpResponse("not work")
+
+
+# create a new vote to redirect to uncertain cases
 def Relabelvote(request, image_id):
     df = pd.read_csv("/Users/maggie/Desktop/active-learning/final_data_test_relabel_demo.csv")
 
@@ -240,7 +279,7 @@ def getFeaturefromDB():
     return df
 
 ## form to ask user to input alhpa value for ridge regression
-def AlphaInput(request):
+def GetAlpha(request):
 
     if request.method == "POST":
         form = AlphaInputForm(request.POST)
