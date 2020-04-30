@@ -1,19 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
+{%  extends "imagelabeling/base.html" %}
+
+{% block content %}
+
 <head>
     <meta charset="UTF-8">
     <h1 class="h2">Model result & ROC curve</h1>
 
     <img src ="data:image/png;base64, {{ uri1 }}" alt="" height="500", width="500">
-
-    <form action="" method = "POST" >
+    <form action="{% url 'GetAlpha' %" method="post" >
         {% csrf_token %}
         <p>alpha: {{a_obj.alpha_input }}</p>
         <p>r^2 score of model: {{ r_score }}</p>
-        <!--<input type = "submit" value = "Submit">-->
     </form>
 </head>
-<body>
 
-</body>
-</html>
+{% endblock %}

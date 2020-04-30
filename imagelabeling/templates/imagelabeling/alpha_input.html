@@ -1,18 +1,15 @@
 {%  extends "imagelabeling/base.html" %}
 
 {% block content %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <h1 class="h2">Enter alpha value</h1>
-   <form action="" method = "POST">
-        {% csrf_token %}
-        {{ form }}
-        <input type = "submit" value = "Submit">
-   </form>
-</head>
-<body>
 
-</body>
-</html>
+
+        <meta charset="UTF-8">
+        <h1 class="h2">{{ ml_model.title }}</h1>
+        <h1 class="h2">Enter alpha value</h1>
+        <form action="" method = "POST">
+            {% csrf_token %}
+            {{ form }}
+            <input type = "submit" value = "Submit">
+        </form>
+
 {% endblock %}

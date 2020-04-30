@@ -45,8 +45,27 @@ class HomePageView(ListView):
     model = MachineLearningModel
     template_name = 'imagelabeling/home.html'
 
-def userTuneRidge(request):
+## form to ask user to input alhpa value for ridge regression
+def GetAlpha(request,ml_model_id):
+
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    ml_id = ml_model.id
+    if request.method == "POST":
+
+
+        form = AlphaInputForm(request.POST)
+        form.save()
+
+    else:
+        form = AlphaInputForm
+
+    return render(request, "imagelabeling/alpha_input.html", {'form' : form,'ml_model':ml_model})
+
+
+def userTuneRidge(request,ml_model_id):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     if request.method == "GET":
+
         ## get all alpha value in database
         allA = AlphaInput.objects.all()
 
@@ -79,7 +98,7 @@ def userTuneRidge(request):
         string1 = base64.b64encode(buf1.read())
         uri1 = urllib.parse.quote(string1)
 
-        return render(request, 'imagelabeling/a_Value.html', {"uri1": uri1, 'a_obj': a_obj, 'r_score': r_score})
+        return render(request, 'imagelabeling/a_Value.html', {"uri1": uri1, 'a_obj': a_obj, 'r_score': r_score, 'ml_model':ml_model})
     else:
         return HttpResponse("not work")
 
@@ -278,17 +297,7 @@ def getFeaturefromDB():
 
     return df
 
-## form to ask user to input alhpa value for ridge regression
-def GetAlpha(request):
 
-    if request.method == "POST":
-        form = AlphaInputForm(request.POST)
-        form.save()
-
-    else:
-        form = AlphaInputForm
-
-    return render(request, "imagelabeling/alpha_input.html", {'form' : form})
 
 
 
