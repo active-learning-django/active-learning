@@ -47,15 +47,15 @@
           <div class="sidebar-sticky">
             <ul class="nav flex-column">
               <li class="nav-item">
-                <a class="nav-link active" href="/model/{{ ml_model.id }}">
-                  <span data-feather="home"></span>
-                  Model Home <span class="sr-only">(current)</span>
-                </a>
-              </li>
-              <li class="nav-item">
                 <a class="nav-link" href="/model/{{ ml_model.id }}/upload">
                   <span data-feather="file"></span>
                   Upload Images
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="/model/{{ ml_model.id }}">
+                  <span data-feather="home"></span>
+                  Model Home <span class="sr-only">(current)</span>
                 </a>
               </li>
               <!--<li class="nav-item">-->
@@ -64,18 +64,6 @@
                   <!--Label Images-->
                 <!--</a>-->
               <!--</li>-->
-              <li class="nav-item">
-                <a class="nav-link" href="/model/{{ ml_model.id }}/probability">
-                  <span data-feather="users"></span>
-                  Model Probability Visualizations
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/model/{{ ml_model.id }}/visualization">
-                  <span data-feather="bar-chart-2"></span>
-                  Model/User Feedback Visualization
-                </a>
-              </li>
               <!--<li class="nav-item">-->
                 <!--<a class="nav-link" href="/model/{{ ml_model.id }}/svm">-->
                   <!--<span data-feather="bar-chart-2"></span>-->
@@ -103,6 +91,18 @@
                 <a class="nav-link" href="/model/{{ ml_model.id }}/f">
                   <span data-feather="bar-chart-2"></span>
                   uncertain cases
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/model/{{ ml_model.id }}/probability">
+                  <span data-feather="users"></span>
+                  Model Probability Visualizations
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/model/{{ ml_model.id }}/visualization">
+                  <span data-feather="bar-chart-2"></span>
+                  Model/User Feedback Visualization
                 </a>
               </li>
             </ul>

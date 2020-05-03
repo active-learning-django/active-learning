@@ -9,6 +9,7 @@ from sklearn.preprocessing import LabelBinarizer
 
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 import matplotlib.pyplot as plt
+from sklearn import metrics
 from sklearn.externals import joblib
 
 
@@ -31,7 +32,7 @@ class Calculation:
 
         ridge_refit = Ridge(alpha=alpha, normalize=True)
         ridge_refit.fit(train_X, train_y)
-        ridge_refit.predict(test_X)
+        # ridge_refit.predict(test_X)
 
         # #save model to Joblib Module
         # joblib_file = "joblib_model.pkl"
@@ -48,6 +49,7 @@ class Calculation:
         score = ridge_refit.score(X, y)
         # score = joblib_model.score(X, y)
         # print("R^2 score: ", score)
+
 
         # probability result
         self['probability'] = prob
@@ -198,7 +200,8 @@ class Calculation:
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
         # plt.savefig('../media/ROC_Curve/ROC.png')
-        return plt
+        result = [plt,roc_auc]
+        return result
 
     def low_diff(self):
         low_diff = self[self['dif'] < 0.3]

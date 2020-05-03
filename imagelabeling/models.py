@@ -161,4 +161,9 @@ class AlphaInput(models.Model):
     def __float__(self):
         return self.alpha_input
 
+class ModelEvaluation(models.Model):
+    alpha_value = models.FloatField(default=0)
+    r_score = models.FloatField(default=0)
+    auc = models.FloatField(default=0)
+
 
