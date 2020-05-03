@@ -52,22 +52,26 @@ def GetAlpha(request,ml_model_id):
     ml_id = ml_model.id
     if request.method == "POST":
 
-
         form = AlphaInputForm(request.POST)
         form.save()
+        #
+        # a_obj = AlphaInput.objects.last()
+        # print(a_obj.alpha_input)
+        # return HttpResponseRedirect('/model/' + str(ml_id) + '/a/s/')
 
     else:
         form = AlphaInputForm
 
-    return render(request, "imagelabeling/alpha_input.html", {'form' : form,'ml_model':ml_model})
+    return render(request, "imagelabeling/alpha_input.html", {'form': form, 'ml_model': ml_model})
+
 
 
 def userTuneRidge(request,ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     if request.method == "GET":
 
-        ## get all alpha value in database
-        allA = AlphaInput.objects.all()
+        # ## get all alpha value in database
+        # allA = AlphaInput.objects.all()
 
         ## get the latest alpha to train model
         a_obj = AlphaInput.objects.last()
@@ -598,6 +602,7 @@ def bulk_upload_view(request, ml_model_id):
         if form.is_valid():
             handle_uploaded_file(ml_model, request.FILES['bulk_upload'])
             return HttpResponseRedirect('/model/' + str(ml_model_id) + '/train')
+            # return HttpResponseRedirect('/model/' + str(ml_model_id))
     else:
         form = ImageBulkUploadForm()
     return render(request, 'imagelabeling/bulk_upload_form.html',
