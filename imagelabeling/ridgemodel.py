@@ -239,7 +239,7 @@ class Calculation:
 #     # unittest.main()
 #
 #     # path = '../final_data_test_relabel_demo'
-#     path = '/Users/maggie/Desktop/active-learning/final_data_test_relabel_demo.csv'
+#     path = '/Users/maggie/Desktop/active-learning/final_data_test_new_relabel.csv'
 #
 #     data = pd.read_csv(path)
 #     data['dif'] = 0

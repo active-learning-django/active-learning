@@ -10,7 +10,7 @@
                 <img src="{{ image.image_file.url}}" class="img-fluid" alt="{{ image.title }}">
             </div>
         </div>
-    <form action="{% url 'Relabelvote' image.id %" method="post">
+    <form action="{% url 'Relabelvote' image.id %}" method="post">
             {% csrf_token %}
             <input type="radio" name="choice" id="zero_votes" value=0>
             <label for="zero_votes">Normal</label><br>
