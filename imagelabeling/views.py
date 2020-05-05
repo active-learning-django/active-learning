@@ -217,7 +217,7 @@ def filter(request, ml_model_id):
     low_dif = df[df['dif'] < 0.3]
 
     low_dif.sort_values(by=['dif'], inplace=True,ascending=True)
-
+    #
     print(low_dif[:1])
     
     limit_new_lowdif = low_dif[:1]
