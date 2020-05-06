@@ -183,8 +183,129 @@ def Relabelvote(request, ml_model_id, image_id,):
     #overwrite the csv file
     df.to_csv(path, index=False)
 
-    return HttpResponseRedirect('/model/' + str(ml_id) + '/f/')
-    # return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    return HttpResponseRedirect('/model/' + str(ml_id) + "/f")
+    #return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+# create a new vote to redirect to uncertain cases
+def Relabelvote(request, ml_model_id, image_id,):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    #df = pd.read_csv("/Users/maggie/Desktop/active-learning/final_data_test_new_relabel.csv")
+    path = "final_data_test_" + ml_model.title + ".csv"
+    df = pd.read_csv(path)
+    # image = get_object_or_404(ImageLabel, pk=image_id)
+    image = ImageLabel.objects.get(pk = image_id)
+    ml_model = image.machine_learning_model
+    ml_id = ml_model.id
+    choice = request.POST['choice']
+    if choice == "1":
+        # print("Choice is 1")
+        selected_choice = image.one_votes
+        selected_choice += 1
+        image.one_votes = selected_choice
+        image.model_classification = 1
+    elif choice == "0":
+        # print("Choice is 0")
+        selected_choice = image.zero_votes
+        selected_choice += 1
+        image.zero_votes = selected_choice
+        image.model_classification = 0
+    else:
+        selected_choice = image.unknown_votes
+        selected_choice += 1
+        image.unknown_votes = selected_choice
+
+    # recalculate confidence based on new vote
+    if image.one_votes + image.zero_votes != 0:
+        image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
+        # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
+        image.adjusted_user_score = abs(image.user_score - 0.5)
+    else:
+        image.user_score = 0.5
+        image.adjusted_user_score = 0
+    image.save()
+    # change the original label with new label entered by user
+
+    #get the new label
+    newlabel = image.model_classification
+    #get the title of iamge
+    t = image.title
+
+    #find the image with approriate title
+    df1 = df[df['image'].str.contains(t)]
+
+    #find the row index of the image
+    r_index = df1.index.values.astype(int)[0]
+
+    #update the label of the image
+    df.iloc[[r_index], [1001]] = newlabel
+
+    # print(df.iloc[[r_index], [1001]])
+
+    #overwrite the csv file
+    df.to_csv(path, index=False)
+
+    return HttpResponseRedirect('/model/' + str(ml_id) + "/f")
+    #return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+def RelabelvoteHome(request, ml_model_id, image_id,):
+    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+    #df = pd.read_csv("/Users/maggie/Desktop/active-learning/final_data_test_new_relabel.csv")
+    path = "final_data_test_" + ml_model.title + ".csv"
+    df = pd.read_csv(path)
+    # image = get_object_or_404(ImageLabel, pk=image_id)
+    image = ImageLabel.objects.get(pk = image_id)
+    ml_model = image.machine_learning_model
+    ml_id = ml_model.id
+    choice = request.POST['choice']
+    if choice == "1":
+        # print("Choice is 1")
+        selected_choice = image.one_votes
+        selected_choice += 1
+        image.one_votes = selected_choice
+        image.model_classification = 1
+    elif choice == "0":
+        # print("Choice is 0")
+        selected_choice = image.zero_votes
+        selected_choice += 1
+        image.zero_votes = selected_choice
+        image.model_classification = 0
+    else:
+        selected_choice = image.unknown_votes
+        selected_choice += 1
+        image.unknown_votes = selected_choice
+
+    # recalculate confidence based on new vote
+    if image.one_votes + image.zero_votes != 0:
+        image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
+        # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
+        image.adjusted_user_score = abs(image.user_score - 0.5)
+    else:
+        image.user_score = 0.5
+        image.adjusted_user_score = 0
+    image.save()
+    # change the original label with new label entered by user
+
+    #get the new label
+    newlabel = image.model_classification
+    #get the title of iamge
+    t = image.title
+
+    #find the image with approriate title
+    df1 = df[df['image'].str.contains(t)]
+
+    #find the row index of the image
+    r_index = df1.index.values.astype(int)[0]
+
+    #update the label of the image
+    df.iloc[[r_index], [1001]] = newlabel
+
+    # print(df.iloc[[r_index], [1001]])
+
+    #overwrite the csv file
+    df.to_csv(path, index=False)
+
+    return HttpResponseRedirect('/model/' + str(ml_id))
+    #return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 # this will allow the user to retrain their model with labeled data
 def retrainModel(ml_model_id):
@@ -192,7 +313,7 @@ def retrainModel(ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
 
 
-def jump(request,ml_model_id, image_id):
+def jump(request, ml_model_id, image_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     image = ImageLabel.objects.get(pk=image_id)
     label_form = ImageLabelForm(request.POST)
@@ -435,8 +556,8 @@ def CalculateProbability2(request, ml_model_id):
             print(len(rid_result['probability']))
             print("          ")
 
-            Calculation.outputCSV(rid_result[0], ml_model.title)
-            Calculation.outputJSON(rid_result[0], ml_model.title)
+            Calculation.outputCSV(rid_result, ml_model.title)
+            Calculation.outputJSON(rid_result, ml_model.title)
 
             return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
 
@@ -674,7 +795,7 @@ def updateImagesWithModelPrediction(request, ml_model_id):
             image.model_difference = entry["dif"]
             image.model_probability = entry["probability"]
             image.save()
-    return HttpResponseRedirect('/model/' + str(ml_model_id) + '/visualization')
+    return HttpResponseRedirect('/model/' + str(ml_model_id))
 
 def visualization(request, ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)

@@ -9,7 +9,7 @@
               {% for image in images %}
               <div class="col-lg-3 col-md-4 col-6">
                 <h2 class="h5 word-break">{{ image.title }}</h2>
-                <a href="/model/{{ ml_model.pk }}/f/{{ image.pk }}">
+                <a href="/model/{{ ml_model.pk }}/image/{{ image.pk }}">
                 <img src="{{ image.image_file.url}}" class="img-fluid img-thumbnail" alt="{{ image.title }}">
                 </a>
               </div>
