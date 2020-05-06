@@ -116,7 +116,6 @@ def userTuneRidge(request,ml_model_id):
 
 
 # create a new vote to redirect to uncertain cases
-# TODO: make csv path dynamically generated
 def Relabelvote(request, ml_model_id, image_id,):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
     #df = pd.read_csv("/Users/maggie/Desktop/active-learning/final_data_test_new_relabel.csv")
