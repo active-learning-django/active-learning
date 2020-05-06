@@ -107,7 +107,7 @@ class Calculation:
         # plt.show()
         return plt
     # non-parameter tunning ridge_regression, find best alpha
-    def best_lambda(self):
+    def best_lambda_ridge(self):
         X = self.drop(['label', "image", 'dif', 'probability'], axis=1)
         y = self['label'].values.reshape(-1, 1)
 
@@ -126,7 +126,27 @@ class Calculation:
         # the best shrinkage
         best_alpha = ridgecv.alpha_
 
-        return best_alpha
+        ridge_refit = Ridge(alpha=best_alpha, normalize=True)
+        ridge_refit.fit(train_X, train_y)
+        ridge_refit.predict(test_X)
+
+        prob = ridge_refit.predict(X)
+
+        # prob = joblib_model.predict(X)
+        # print(prob)
+        score = ridge_refit.score(X, y)
+        # score = joblib_model.score(X, y)
+        print("R^2 score: ", score)
+
+        # probability result
+        self['probability'] = prob
+
+        # calculate absolute value
+        self['dif'] = abs(self['probability'] - 0.5)
+
+        result = [self,best_alpha,score]
+
+        return result
 
     #no parameter tunning
     def ridge_regression(self,alpha):
@@ -139,14 +159,13 @@ class Calculation:
         train_X, test_X, train_y, test_y = train_test_split(X, y, test_size=0.2, random_state=0)
         # # stratify = y is used when data is not enough or biased
         #
-        # # find best alpha
-        # alpha_list = 10 ** np.linspace(2, -5, 22) * 0.5
+        # find best alpha
+        # alpha_list = 10**np.linspace(2,-5,22)*0.5
         # print(alpha_list)
-        #
-        # # run model with all alpha
-        # ridgecv = RidgeCV(alphas=self, scoring='neg_mean_squared_error', normalize=True)
+
+        # # # run model with all alpha
+        # ridgecv = RidgeCV(alphas=alpha, scoring='neg_mean_squared_error', normalize=True, cv = 2)
         # ridgecv.fit(train_X, train_y)
-        #
         #
         # # the best shrinkage
         # best_alpha = ridgecv.alpha_
@@ -155,13 +174,6 @@ class Calculation:
         ridge_refit = Ridge(alpha=alpha, normalize=True)
         ridge_refit.fit(train_X, train_y)
         ridge_refit.predict(test_X)
-
-        # #save model to Joblib Module
-        # joblib_file = "joblib_model.pkl"
-        # joblib.dump(ridge_refit, joblib_file)
-
-        # # Load from file
-        # joblib_model = joblib.load(joblib_file)
 
         # run best model with a X data
         prob = ridge_refit.predict(X)
@@ -178,6 +190,7 @@ class Calculation:
         # calculate absolute value
         self['dif'] = abs(self['probability'] - 0.5)
 
+        # result = [self, alpha, score]
 
         return self
 

@@ -46,73 +46,83 @@ class HomePageView(ListView):
     template_name = 'imagelabeling/home.html'
 
 ## form to ask user to input alhpa value for ridge regression
-def GetAlpha(request,ml_model_id):
-
-    ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
-    ml_id = ml_model.id
-    if request.method == "POST":
-
-        form = AlphaInputForm(request.POST)
-        form.save()
-        #
-        # a_obj = AlphaInput.objects.last()
-        # print(a_obj.alpha_input)
-        # return HttpResponseRedirect('/model/' + str(ml_id) + '/a/s/')
-
-    else:
-        form = AlphaInputForm
-
-    return render(request, "imagelabeling/alpha_input.html", {'form': form, 'ml_model': ml_model})
-
+# def GetAlpha(request,ml_model_id):
+#
+#     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
+#     ml_id = ml_model.id
+#     if request.method == "POST":
+#
+#         form = AlphaInputForm(request.POST)
+#         form.save()
+#         #
+#         # a_obj = AlphaInput.objects.last()
+#         # print(a_obj.alpha_input)
+#         # return HttpResponseRedirect('/model/' + str(ml_id) + '/a/s/')
+#
+#     else:
+#         form = AlphaInputForm
+#
+#     return render(request, "imagelabeling/alpha_input.html", {'form': form, 'ml_model': ml_model})
 
 
 def userTuneRidge(request,ml_model_id):
     ml_model = get_object_or_404(MachineLearningModel, pk=ml_model_id)
-    if request.method == "GET":
-
+    # if request.method == "GET":
         # ## get all alpha value in database
         # allA = AlphaInput.objects.all()
-
-        ## get the latest alpha to train model
-        a_obj = AlphaInput.objects.last()
-
-        ## get the alpha value
-        a_value = a_obj.alpha_input
+        #
+        # ## get the latest alpha to train model
+        # a_obj = AlphaInput.objects.last()
+        #
+        # ## get the alpha value
+        # a_value = a_obj.alpha_input
 
         # print(avalue.alpha_input)
 
         ## read in the latest csv
         #path = "/Users/maggie/Desktop/active-learning/final_data_test_new_relabel.csv"
-        path = "final_data_test_" + ml_model.title + ".csv"
-        df = Calculation.readCSV(path)
+    path = "final_data_test_" + ml_model.title + ".csv"
+    df = Calculation.readCSV(path)
 
-        ## run ridge regression
-        result = Calculation.RidgeWithTuning(df,a_value)
-        print(result[1])
 
-        ## r^2 score
-        r_score = result[2]
 
-        ## generate ROC curve
+    ## run ridge regression
+    result = Calculation.best_lambda_ridge(df)
 
-        plt = Calculation.ROC(result[0])[0]
-        fig = plt.gcf()
-        buf1 = io.BytesIO()
-        fig.savefig(buf1, format='png')
-        buf1.seek(0)
-        string1 = base64.b64encode(buf1.read())
-        uri1 = urllib.parse.quote(string1)
+    #update the new probability & dif after training model
+    df['probability'] = result[0]['probability']
+    df['dif'] = result[0]['dif']
 
-        ## create new object to save result of evaluting the model: r_score, alpha value & area under the curve
-        mevaluate = ModelEvaluation.objects.create(alpha_value=a_value, r_score= r_score,auc=Calculation.ROC(result[0])[1])
-        mevaluate.save()
+    df = Calculation.concateData(result[0])
 
-        ## get all object in ModelEvaluation
-        evaluation = ModelEvaluation.objects.all()
+    df.to_csv(path, index=False)
 
-        return render(request, 'imagelabeling/a_Value.html', {"uri1": uri1, 'a_obj': a_obj, 'r_score': r_score, 'ml_model':ml_model})
-    else:
-        return HttpResponse("not work")
+    ## r^2 score
+    r_score = result[2]
+
+    ## best_alpha
+    best_alpha = result[1]
+
+    ## generate ROC curve
+
+    plt = Calculation.ROC(result[0])[0]
+    fig = plt.gcf()
+    buf1 = io.BytesIO()
+    fig.savefig(buf1, format='png')
+    buf1.seek(0)
+    string1 = base64.b64encode(buf1.read())
+    uri1 = urllib.parse.quote(string1)
+
+        # ## create new object to save result of evaluting the model: r_score, alpha value & area under the curve
+        # mevaluate = ModelEvaluation.objects.create(alpha_value=a_value, r_score= r_score,auc=Calculation.ROC(result[0])[1])
+        # mevaluate.save()
+        #
+        # ## get all object in ModelEvaluation
+        # evaluation = ModelEvaluation.objects.all()
+
+    return render(request, 'imagelabeling/a_Value.html', {"uri1": uri1,'best_alpha':best_alpha,'r_score': r_score, 'ml_model':ml_model})
+    # else:
+    #     return HttpResponse("not work")
 
 
 # create a new vote to redirect to uncertain cases
@@ -127,13 +137,13 @@ def Relabelvote(request, ml_model_id, image_id,):
     ml_id = ml_model.id
     choice = request.POST['choice']
     if choice == "1":
-        print("Choice is 1")
+        # print("Choice is 1")
         selected_choice = image.one_votes
         selected_choice += 1
         image.one_votes = selected_choice
         image.model_classification = 1
     elif choice == "0":
-        print("Choice is 0")
+        # print("Choice is 0")
         selected_choice = image.zero_votes
         selected_choice += 1
         image.zero_votes = selected_choice
@@ -204,7 +214,15 @@ def filter(request, ml_model_id):
     path = "final_data_test_" + ml_model.title + ".csv"
     df = pd.read_csv(path)
     low_dif = df[df['dif'] < 0.3]
-    uncertain_list = low_dif['image']
+
+    low_dif.sort_values(by=['dif'], inplace=True,ascending=True)
+    #
+    print(low_dif[:1])
+    
+    limit_new_lowdif = low_dif[:1]
+    uncertain_list = limit_new_lowdif['image']
+    # uncertain_list.sort(reverse=True)
+    # print(uncertain_list)
     # print(uncertain_list)
 
 
@@ -410,15 +428,15 @@ def CalculateProbability2(request, ml_model_id):
 
             # fill in .5 for alpha for first run
             rid_result = Calculation.ridge_regression(firstdf, .5)
-            concatedDF = Calculation.concateData(rid_result)
-            final = Calculation.ridge_regression(concatedDF, .5)
+            # concatedDF = Calculation.concateData(rid_result[0])
+            # final = Calculation.ridge_regression(concatedDF, .5)
 
             print("       ")
-            print(len(final['probability']))
+            print(len(rid_result['probability']))
             print("          ")
 
-            Calculation.outputCSV(final, ml_model.title)
-            Calculation.outputJSON(final, ml_model.title)
+            Calculation.outputCSV(rid_result[0], ml_model.title)
+            Calculation.outputJSON(rid_result[0], ml_model.title)
 
             return HttpResponseRedirect('/model/' + str(ml_model_id) + '/run-predictions')
 
@@ -608,38 +626,38 @@ def image_label_detail(request, ml_model_id, image_id):
 
 # this will just update our database with the user's vote of whether image is normal or abnormal
 # we will envoke this from our form in /label, template label_image
-# def vote(request, image_id):
-#     image = get_object_or_404(ImageLabel, pk=image_id)
-#     ml_model = image.machine_learning_model
-#     ml_id = ml_model.id
-#     choice = request.POST['choice']
-#     if choice == "1":
-#         print("Choice is 1")
-#         selected_choice = image.one_votes
-#         selected_choice += 1
-#         image.one_votes = selected_choice
-#         image.model_classification = 1
-#     elif choice == "0":
-#         print("Choice is 0")
-#         selected_choice = image.zero_votes
-#         selected_choice += 1
-#         image.zero_votes = selected_choice
-#         image.model_classification = 0
-#     else:
-#         selected_choice = image.unknown_votes
-#         selected_choice += 1
-#         image.unknown_votes = selected_choice
-#
-#     # recalculate confidence based on new vote
-#     if image.one_votes + image.zero_votes != 0:
-#         image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
-#         # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
-#         image.adjusted_user_score = abs(image.user_score - 0.5)
-#     else:
-#         image.user_score = 0.5
-#         image.adjusted_user_score = 0
-#     image.save()
-#     return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
+def vote(request, image_id):
+    image = get_object_or_404(ImageLabel, pk=image_id)
+    ml_model = image.machine_learning_model
+    ml_id = ml_model.id
+    choice = request.POST['choice']
+    if choice == "1":
+        print("Choice is 1")
+        selected_choice = image.one_votes
+        selected_choice += 1
+        image.one_votes = selected_choice
+        image.model_classification = 1
+    elif choice == "0":
+        print("Choice is 0")
+        selected_choice = image.zero_votes
+        selected_choice += 1
+        image.zero_votes = selected_choice
+        image.model_classification = 0
+    else:
+        selected_choice = image.unknown_votes
+        selected_choice += 1
+        image.unknown_votes = selected_choice
+
+    # recalculate confidence based on new vote
+    if image.one_votes + image.zero_votes != 0:
+        image.user_score = image.one_votes / (image.one_votes + image.zero_votes)
+        # so we can sort by adjusted confidence level based on how sure abnormal vs normal it is
+        image.adjusted_user_score = abs(image.user_score - 0.5)
+    else:
+        image.user_score = 0.5
+        image.adjusted_user_score = 0
+    image.save()
+    return HttpResponseRedirect('/model/' + str(ml_id) + '/label')
 
 # update image_label object with classification and probability
 def updateImagesWithModelPrediction(request, ml_model_id):
