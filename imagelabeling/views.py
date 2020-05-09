@@ -287,7 +287,7 @@ def RelabelvoteHome(request, ml_model_id, image_id,):
 
     #get the new label
     newlabel = image.model_classification
-    #get the title of iamge
+    #get the title of image
     t = image.title
 
     #find the image with approriate title
