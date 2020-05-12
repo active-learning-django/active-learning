@@ -36,3 +36,7 @@ This application uses these major Libraries/frameworks and their correspoding ve
 The dependencies can be installed in full by installing all libraries in requirements.txt through pip:
 
 pip install -r requirements.txt
+
+## Previous work
+This project is based on a previous group work. Details can be found at https://github.com/tylerIams/ActiveLearningApp
+
