@@ -46,7 +46,7 @@ tensorboard==1.14.0
 tensorflow==1.14.0
 tensorflow-estimator==1.14.0
 termcolor==1.1.0
-urllib3==1.25.8
+urllib3==1.26.5
 Werkzeug==0.14.1
 wrapt==1.12.1
 django-dynamic-model==0.1.0
